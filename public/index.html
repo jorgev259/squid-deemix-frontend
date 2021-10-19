@@ -34,6 +34,7 @@
         const search = document.getElementById('album-search');
         search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
         search.addEventListener('change', async (e) => {
+          if (e.target.value === '') return document.getElementById('albums').innerHTML = '';
           document.getElementById('progress-album').innerHTML = '';
           document.getElementById('progress-bar-wrapper').innerHTML = '';
           document.getElementById('albums').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
@@ -42,6 +43,9 @@
           document.getElementById('albums').innerHTML = d.data.map(d =>
             `<div class="album" id="album-${d.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg"></span><span class="big">${d.title}</span><br><span class="small">by ${d.artist.name}</span><br><img class="album-download" width="48" height="48" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></div>`
           ).join('<br>\n');
+
+          if (d.data.length === 0) return document.getElementById('albums').innerHTML = '<span class="small">Not found!</span>';
+
           for (c of document.getElementById('albums').children) {
             if (c.children[5]) {
               let id = c.id.split('-')[1];

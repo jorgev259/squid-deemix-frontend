@@ -25,8 +25,7 @@ app.get('/api/search', async (req, res) => {
   if (!req.query.search) return res.sendStatus(400);
 
   let s = await deezerInstance.api.search_album(req.query.search, {
-    strict: true,
-    limit: 7,
+    limit: 15,
   });
 
   let format = s.data.map(s => {
