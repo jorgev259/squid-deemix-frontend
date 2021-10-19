@@ -1,0 +1,31 @@
+{
+  "name": "deemix-web-frontend",
+  "version": "1.0.0",
+  "description": "a dumb frontend for just getting some got damned songs",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://git.oat.zone/oat/deemix-web-frontend.git"
+  },
+  "keywords": [
+    "deemix",
+    "piracy"
+  ],
+  "author": "oatmealine",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "deemix": "git+https://git.freezer.life/RemixDev/deemix-js",
+    "deezer-js": "^1.2.4",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-ws": "^5.0.2",
+    "ws": "^8.2.3"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.5",
+    "utf-8-validate": "^5.0.7"
+  }
+}
