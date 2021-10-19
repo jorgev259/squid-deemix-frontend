@@ -49,8 +49,12 @@
             let match = e.conditionText.match(/prefers-color-scheme:\s*(light|dark)/i)
             if (!match) return;
             e.conditionText = e.conditionText.replace(match[0], (match[1].toLowerCase() == theme ? 'min' : 'max') + '-width: 0')
-          })
+          });
         }
+
+        document.getElementById('theme-switch').addEventListener('click', () => {
+          setTheme(document.getElementById('theme-switch').checked ? 'dark' : 'light');
+        })
 
         const search = document.getElementById('album-search');
         search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
@@ -105,6 +109,9 @@
     </script>
     <style>
       @media (prefers-color-scheme: dark) {
+        * {
+          transition: 0.1s background-color ease-out;
+        }
         body {
           background-color: #0a0a0f;
           color: #fff;
@@ -181,6 +188,9 @@
         .track:hover {
           background-color: #161627;
           border-left: 0.25rem solid rgb(131, 131, 243);
+        }
+        .slider {
+          background-color: rgb(131, 131, 243);
         }
       }
       @media (prefers-color-scheme: light) {
@@ -260,6 +270,12 @@
         .track:hover {
           background-color: #e8e8e8;
           border-left: 0.25rem solid #ea74ac;
+        }
+        .slider {
+          background-color: #ea74ac;
+        }
+        #git {
+          filter: invert(100%);
         }
       }
 
@@ -401,9 +417,84 @@
         border-bottom: none;
         border-radius: 0px 0px 15px 15px;
       }
+
+      #header {
+        display: flex;
+        align-items: left;
+        justify-content: left;
+        flex-direction: row;
+      }
+      #header > * {
+        margin-left: 12px;
+        margin-right: 12px;
+      }
+
+       /* The switch - the box around the slider */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+
+      /* Hide default HTML checkbox */
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      /* The slider */
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        -webkit-transition: .4s;
+        transition: .4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+      }
+
+      input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+      }
+
+      /* Rounded sliders */
+      .slider.round {
+        border-radius: 34px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
+      } 
     </style>
   </head>
   <body>
+    <div id="header">
+      <span>
+        <label class="switch">
+          <input type="checkbox" id="theme-switch">
+          <span class="slider round"></span>
+        </label>
+      </span>
+      <a href="https://deemix.app" target="_blank"><img id="deemix" width="26" height="auto" src="https://deemix.app/assets/img/logo.85a922b8.png"> deemix</a>
+      <a href="https://git.oat.zone/oat/deemix-web-frontend" target="_blank"><img id="git" width="26" height="auto" src="https://git-scm.com/images/logos/downloads/Git-Icon-White.png"> git</a>
+    </div>
     <span id="main">
       <input type="search" id="album-search" name="q">
       <div id="progress"><div id="progress-album"></div><div id="progress-bar-wrapper"></div></div>
