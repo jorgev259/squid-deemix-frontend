@@ -58,12 +58,14 @@
 
         const search = document.getElementById('album-search');
         search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
-        search.addEventListener('change', async (e) => {
-          if (e.target.value === '') return document.getElementById('albums').innerHTML = '';
+
+        async function change(e) {
+          const value = document.getElementById('album-search').value;
+          if (value === '') return document.getElementById('albums').innerHTML = '';
           document.getElementById('progress-album').innerHTML = '';
           document.getElementById('progress-bar-wrapper').innerHTML = '';
           document.getElementById('albums').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
-          const d = await axios.get('/api/search', {params: {search: e.target.value}});
+          const d = await axios.get('/api/search', {params: {search: value}});
           document.getElementById('albums').innerHTML = d.data.map(d =>
             `<div class="album" id="album-${d.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg"></span><span class="big">${d.title}</span><br><span class="small">by ${d.artist.name}</span><br><img class="album-download" width="48" height="48" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></div><div class="album-bottom" id="album-bottom-${d.id}"></div>`
           ).join('<br>');
@@ -102,9 +104,40 @@
               document.getElementById('album-bottom-' + id).innerHTML = album.data.tracks.map(d =>
                 `<div class="track" id="track-${d.id}"><span>${d.artist} - ${d.title}</span><span><span class="track-download-wrapper"><img class="album-download" width="32" height="32" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></span> ${formatTime(d.duration)}</span></div>`
               ).join('');
+              for (track of document.getElementById('album-bottom-' + id).children) {
+                let trackId = track.id.split('-')[1];
+                track.children[1].children[0].onclick = () => {
+                  console.log(trackId);
+
+                  let coverArt
+                  document.getElementById('albums').innerHTML = '';
+                  document.getElementById('progress-album').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
+                  const ws = new WebSocket('wss://deemix.oat.zone/api/track?id=' + trackId);
+                  ws.onmessage = (m) => {
+                    const d = JSON.parse(m.data);
+                    console.log(d);
+
+                    if (d.key === 'downloadInfo') {
+                      document.getElementById('progress-album').innerHTML = `<div class="album" id="album-${d.data.data.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="${coverArt}"></span><span class="big">${d.data.data.title}</span><br><span class="small">by ${d.data.data.artist}</span><br><span class="small" id="progress-state">${d.data.state}</span></div>`;
+                    } else if (d.key === 'updateQueue') {
+                      if (d.data.progress) {
+                        document.getElementById('progress-bar-wrapper').innerHTML = `<br><div id="progress-bar"><div id="progress-bar-inner" style="height:100%;width:${d.data.progress}%"></div></div>`
+                      }
+                    } else if (d.key === 'coverArt') {
+                      coverArt = d.data;
+                    } else if (d.key === 'download') {
+                      download(d.data);
+                    } else if (d.key === 'finishDownload') {
+                      change();
+                    }
+                  }
+                }
+              }
             }
           }
-        });
+        }
+
+        search.addEventListener('change', change);
       };
     </script>
     <style>
