@@ -20,6 +20,7 @@ deemixSettings.downloadLocation = path.join(process.cwd(), 'data/');
 deemixSettings.maxBitrate = String(deezer.TrackFormats.FLAC);
 deemixSettings.overwriteFile = deemix.settings.OverwriteOption.OVERWRITE;
 
+app.use(express.static('public'));
 app.use('/data', express.static('data', {extensions:  ['flac', 'mp3']}));
 app.get('/api/search', async (req, res) => {
   if (!req.query.search) return res.sendStatus(400);
@@ -56,8 +57,22 @@ app.get('/api/album', async (req, res) => {
 */
 
 app.get('/api/album', async (req, res) => {
-  console.log('get route', req.testing);
-  res.end();
+  if (!req.query.id) return req.sendStatus(400);
+  const album = await deezerInstance.api.get_album(req.query.id);
+  res.send({
+    id: album.id,
+    title: album.title,
+    link: album.link,
+    tracks: album.tracks.data.map(t => {
+      return {
+        id: t.id,
+        title: t.title,
+        duration: t.duration,
+        link: t.link,
+        artist: t.artist.name,
+      };
+    })
+  });
 });
 
 app.ws('/api/album', async (ws, req) => {
