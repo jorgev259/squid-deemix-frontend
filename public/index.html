@@ -31,6 +31,10 @@
           .catch(console.error);
         }
 
+        function formatTime(s) {
+          return Math.floor(s / 60).toString().padStart(2, '0') + ':' + (s % 60).toString().padStart(2, '0');
+        }
+
         const search = document.getElementById('album-search');
         search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
         search.addEventListener('change', async (e) => {
@@ -39,10 +43,9 @@
           document.getElementById('progress-bar-wrapper').innerHTML = '';
           document.getElementById('albums').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
           const d = await axios.get('/api/search', {params: {search: e.target.value}});
-          console.log(d);
           document.getElementById('albums').innerHTML = d.data.map(d =>
-            `<div class="album" id="album-${d.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg"></span><span class="big">${d.title}</span><br><span class="small">by ${d.artist.name}</span><br><img class="album-download" width="48" height="48" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></div>`
-          ).join('<br>\n');
+            `<div class="album" id="album-${d.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg"></span><span class="big">${d.title}</span><br><span class="small">by ${d.artist.name}</span><br><img class="album-download" width="48" height="48" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></div><div class="album-bottom" id="album-bottom-${d.id}"></div>`
+          ).join('<br>');
 
           if (d.data.length === 0) return document.getElementById('albums').innerHTML = '<span class="small">Not found!</span>';
 
@@ -51,13 +54,11 @@
               let id = c.id.split('-')[1];
               c.children[5].onclick = (a) => {
                 let coverArt
-                console.log(id);
                 document.getElementById('albums').innerHTML = '';
                 document.getElementById('progress-album').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
                 const ws = new WebSocket('wss://deemix.oat.zone/api/album?id=' + id);
                 ws.onmessage = (m) => {
                   const d = JSON.parse(m.data);
-                  console.log(d);
 
                   if (d.key === 'downloadInfo') {
                     document.getElementById('progress-album').innerHTML = `<div class="album" id="album-${d.data.data.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="${coverArt}"></span><span class="big">${d.data.data.title}</span><br><span class="small">by ${d.data.data.artist}</span><br><span class="small" id="progress-state">${d.data.state}</span></div>`;
@@ -66,13 +67,20 @@
                       document.getElementById('progress-bar-wrapper').innerHTML = `<br><div id="progress-bar"><div id="progress-bar-inner" style="height:100%;width:${d.data.progress}%"></div></div>`
                     }
                   } else if (d.key === 'coverArt') {
-                    console.log(d.data);
                     coverArt = d.data;
                   } else if (d.key === 'download') {
                     download(d.data);
                   }
                 }
               }
+            }
+            let id = c.id.split('-')[1];
+            if (document.getElementById('album-bottom-' + id)) {
+              document.getElementById('album-bottom-' + id).innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
+              const album = await axios.get('/api/album', {params: {id: id}});
+              document.getElementById('album-bottom-' + id).innerHTML = album.data.tracks.map(d =>
+                `<div class="track" id="track-${d.id}"><span>${d.artist} - ${d.title}</span><span class="duration">${formatTime(d.duration)}</span></div>`
+              ).join('');
             }
           }
         });
@@ -117,7 +125,7 @@
         margin: 2px;
         background-color: #161627;
         font-size: large;
-        border-radius: 10px;
+        border-radius: 10px 10px 0px 0px;
         box-shadow: 0px 0px 12px #000;
         transition: 0.1s border-left ease-out, 0.1s background-color ease-in-out;
         border-left: 0rem solid rgb(131, 131, 243);
@@ -169,6 +177,14 @@
       }
       .album:hover .album-image-wrapper {
         border: 0px solid rgba(0, 0, 0, 0);
+      }
+      .link {
+        color:rgb(131, 131, 243);
+        cursor: pointer;
+        transition: 0.1s color ease-out;
+      }
+      .link:hover {
+        color:rgb(151, 151, 263);
       }
       .album-download {
         position: relative;
@@ -227,6 +243,39 @@
       #progress-bar-inner {
         background-color: rgb(131, 131, 243);
         border-radius: 10px;
+      }
+
+      .album-bottom {
+        padding: 0px;
+        margin-left: 2px;
+        margin-right: 2px;
+        background-color: #112;
+        border-radius: 0px 0px 10px 10px;
+        transition: 0.1s border-left ease-out;
+        border-left: 0rem solid rgb(131, 131, 243);
+      }
+      .album:hover .album-bottom {
+        border-left: 0.25rem solid rgb(131, 131, 243);
+      }
+      .track {
+        padding: 10px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        margin: none;
+        border-bottom: 3px solid #0a0a0f;
+        display: flex;
+        justify-content: space-between;
+        font-size: large;
+        transition: 0.05s background-color ease-out, 0.1s border-left ease-out;
+        border-left: 0rem solid rgb(131, 131, 243);
+      }
+      .track:nth-last-child(1) {
+        border-bottom: none;
+        border-radius: 0px 0px 15px 15px;
+      }
+      .track:hover {
+        background-color: #161627;
+        border-left: 0.25rem solid rgb(131, 131, 243);
       }
     </style>
   </head>
