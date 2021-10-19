@@ -82,13 +82,18 @@ app.ws('/api/album', async (ws, req) => {
     send(key, data) {
       if (data.downloaded) {
         ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
+        console.log('downloaded ' + data.downloadPath + ', deleting in 1hr')
         setTimeout(() => {
-          fs.unlinkSync(data.downloadPath);
+          try {
+            fs.unlinkSync(data.downloadPath);
+          } catch(err) {
+            console.log('tried to delete ' + data.downloadPath + ', but failed? its likely already gone')
+          }
         }, 1000 * 60 * 60 /* 1 hour */);
       }
 
       ws.send(JSON.stringify({key, data}));
-      console.log(`[${key}] ${inspect(data)}`);
+      //console.log(`[${key}] ${inspect(data)}`);
     }
   };
 
