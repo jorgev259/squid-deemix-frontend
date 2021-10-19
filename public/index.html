@@ -34,6 +34,23 @@
         function formatTime(s) {
           return Math.floor(s / 60).toString().padStart(2, '0') + ':' + (s % 60).toString().padStart(2, '0');
         }
+        function setTheme(theme) {
+          Array.from(document.styleSheets).map(e => {
+            try {
+              return Array.from(e.cssRules)
+            } catch (e) {
+              return []
+            }
+          }).flat().map(e => {
+            if (e.constructor != CSSMediaRule) return;
+            if (e.originalConditionText) e.conditionText = e.originalConditionText;
+            else e.originalConditionText = e.conditionText
+            if (theme == "system") return
+            let match = e.conditionText.match(/prefers-color-scheme:\s*(light|dark)/i)
+            if (!match) return;
+            e.conditionText = e.conditionText.replace(match[0], (match[1].toLowerCase() == theme ? 'min' : 'max') + '-width: 0')
+          })
+        }
 
         const search = document.getElementById('album-search');
         search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
@@ -87,9 +104,166 @@
       };
     </script>
     <style>
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #0a0a0f;
+          color: #fff;
+        }
+        input {
+          background-color: #112;
+          color: #fff;
+          box-shadow: 0px 0px 15px #000;
+          border-bottom: 0rem solid  rgb(131, 131, 243);
+        }
+        input:focus, input:hover {
+          border-bottom: 0.25rem solid  rgb(131, 131, 243);
+          background-color: #161626;
+        }
+        .album {
+          background-color: #161627;
+          box-shadow: 0px 0px 12px #000;
+          border-left: 0rem solid rgb(131, 131, 243);
+        }
+        .album:hover {
+          border-left: 0.25rem solid rgb(131, 131, 243);
+          background-color: #181829;
+        }
+        .small {
+          color: #888;
+        }
+        .album-image {
+          border: 0px solid rgb(131, 131, 243);
+          box-shadow: 0px 0px 15px #000;
+        }
+        .album:hover .album-image {
+          border: 2px solid rgb(131, 131, 243);
+          box-shadow: 0px 0px 30px #000;
+        }
+        .album-image-wrapper {
+          border: 2px solid rgba(0, 0, 0, 0);
+        }
+        .album:hover .album-image-wrapper {
+          border: 0px solid rgba(0, 0, 0, 0);
+        }
+        .link {
+          color:rgb(131, 131, 243);
+        }
+        .link:hover {
+          color: rgb(151, 151, 263);
+        }
+        .album-download {
+          filter: invert(100%) hue-rotate(180deg);
+        }
+        .album-download:hover {
+          filter: invert(100%) sepia(100%) saturate(800%) brightness(70%) hue-rotate(180deg);
+        }
+        .lds-ring div {
+          border: 8px solid #fff;
+          border-color: #fff transparent transparent transparent;
+        }
+        #progress-bar {
+          background-color: #161627;
+        }
+        #progress-bar-inner {
+          background-color: rgb(131, 131, 243);
+        }
+        .album-bottom {
+          background-color: #112;
+          border-left: 0rem solid rgb(131, 131, 243);
+        }
+        .album:hover .album-bottom {
+          border-left: 0.25rem solid rgb(131, 131, 243);
+        }
+        .track {
+          border-bottom: 3px solid #0a0a0f;
+          border-left: 0rem solid rgb(131, 131, 243);
+        }
+        .track:hover {
+          background-color: #161627;
+          border-left: 0.25rem solid rgb(131, 131, 243);
+        }
+      }
+      @media (prefers-color-scheme: light) {
+        body {
+          background-color: #f0f0f0;
+          color: #1e1e2d;
+        }
+        input {
+          background-color: #fafafa;
+          color: #1e1e2d;
+          box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+          border-bottom: 0rem solid  #ea74ac;
+        }
+        input:focus, input:hover {
+          border-bottom: 0.25rem solid  #ea74ac;
+          background-color: #e8e8e8;
+        }
+        .album {
+          background-color: #ffffff;
+          box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.2);
+          border-left: 0rem solid #ea74ac;
+        }
+        .album:hover {
+          border-left: 0.25rem solid #ea74ac;
+          background-color: #fafafa;
+        }
+        .small {
+          color: #c8c8d2;
+        }
+        .album-image {
+          border: 0px solid #ea74ac;
+          box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+        }
+        .album:hover .album-image {
+          border: 2px solid #ea74ac;
+          box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
+        }
+        .album-image-wrapper {
+          border: 2px solid rgba(0, 0, 0, 0);
+        }
+        .album:hover .album-image-wrapper {
+          border: 0px solid rgba(0, 0, 0, 0);
+        }
+        .link {
+          color:#ea74ac;
+        }
+        .link:hover {
+          color: #f484b6;
+        }
+        .album-download {
+          filter: invert(0%) hue-rotate(276deg);
+        }
+        .album-download:hover {
+          filter: invert(100%) sepia(100%) saturate(2000%) brightness(70%) hue-rotate(276deg);
+        }
+        .lds-ring div {
+          border: 8px solid #1e1e2d;
+          border-color: #1e1e2d transparent transparent transparent;
+        }
+        #progress-bar {
+          background-color: #fafafa;
+        }
+        #progress-bar-inner {
+          background-color: #ea74ac;
+        }
+        .album-bottom {
+          background-color: #fafafa;
+          border-left: 0rem solid #ea74ac;
+        }
+        .album:hover .album-bottom {
+          border-left: 0.25rem solid #ea74ac;
+        }
+        .track {
+          border-bottom: 3px solid #f0f0f0;
+          border-left: 0rem solid #ea74ac;
+        }
+        .track:hover {
+          background-color: #e8e8e8;
+          border-left: 0.25rem solid #ea74ac;
+        }
+      }
+
       body {
-        background-color: #0a0a0f;
-        color: #fff;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
 
@@ -107,37 +281,20 @@
         padding: 15px;
         font-size: x-large;
         border: none;
-        background-color: #112;
-        color: #fff;
         border-radius: 7px;
-        box-shadow: 0px 0px 15px #000;
-        border-bottom: 0rem solid  rgb(131, 131, 243);
         transition: 0.1s border-bottom ease-out, 0.1s background-color ease-in-out;
-      }
-
-      input:focus, input:hover {
-        border-bottom: 0.25rem solid  rgb(131, 131, 243);
-        background-color: #161626;
       }
 
       .album {
         padding: 15px;
         margin: 2px;
-        background-color: #161627;
         font-size: large;
         border-radius: 10px 10px 0px 0px;
-        box-shadow: 0px 0px 12px #000;
         transition: 0.1s border-left ease-out, 0.1s background-color ease-in-out;
-        border-left: 0rem solid rgb(131, 131, 243);
         height: 96px;
-      }
-      .album:hover {
-        border-left: 0.25rem solid rgb(131, 131, 243);
-        background-color: #181829;
       }
       .small {
         font-size: medium;
-        color: #888;
       }
       .big {
         font-weight: bold;
@@ -156,18 +313,11 @@
         width: auto;
         height: 100%;
         border-radius: 10px;
-        border: 0px solid rgb(131, 131, 243);
         transition: 0.1s border ease-out, 0.1s box-shadow ease-out;
         margin: none;
         padding: none;
-        box-shadow: 0px 0px 0px #000;
-      }
-      .album:hover .album-image {
-        border: 2px solid rgb(131, 131, 243);
-        box-shadow: 0px 0px 30px #000;
       }
       .album-image-wrapper {
-        border: 2px solid rgba(0, 0, 0, 0);
         transition: 0.1s border ease-out;
         float: right;
         max-height: 100%;
@@ -175,16 +325,9 @@
         padding: none;
         margin: none;
       }
-      .album:hover .album-image-wrapper {
-        border: 0px solid rgba(0, 0, 0, 0);
-      }
       .link {
-        color:rgb(131, 131, 243);
         cursor: pointer;
         transition: 0.1s color ease-out;
-      }
-      .link:hover {
-        color:rgb(151, 151, 263);
       }
       .album-download {
         position: relative;
@@ -193,10 +336,6 @@
         height: 32px;
         cursor: pointer;
         transition: 0.1s filter ease-out;
-        filter: invert(100%);
-      }
-      .album-download:hover {
-        filter: invert(100%) sepia(100%) saturate(800%) brightness(70%) hue-rotate(180deg);
       }
       .lds-ring {
         display: inline-block;
@@ -211,10 +350,8 @@
         width: 64px;
         height: 64px;
         margin: 8px;
-        border: 8px solid #fed;
         border-radius: 50%;
         animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-        border-color: #fed transparent transparent transparent;
       }
       .lds-ring div:nth-child(1) {
         animation-delay: -0.45s;
@@ -235,13 +372,11 @@
       }
 
       #progress-bar {
-        background-color: #161627;
         border-radius: 10px;
         width: 100%;
         height: 12px;
       }
       #progress-bar-inner {
-        background-color: rgb(131, 131, 243);
         border-radius: 10px;
       }
 
@@ -249,33 +384,22 @@
         padding: 0px;
         margin-left: 2px;
         margin-right: 2px;
-        background-color: #112;
         border-radius: 0px 0px 10px 10px;
         transition: 0.1s border-left ease-out;
-        border-left: 0rem solid rgb(131, 131, 243);
-      }
-      .album:hover .album-bottom {
-        border-left: 0.25rem solid rgb(131, 131, 243);
       }
       .track {
         padding: 10px;
         padding-top: 6px;
         padding-bottom: 6px;
         margin: none;
-        border-bottom: 3px solid #0a0a0f;
         display: flex;
         justify-content: space-between;
         font-size: large;
         transition: 0.05s background-color ease-out, 0.1s border-left ease-out;
-        border-left: 0rem solid rgb(131, 131, 243);
       }
       .track:nth-last-child(1) {
         border-bottom: none;
         border-radius: 0px 0px 15px 15px;
-      }
-      .track:hover {
-        background-color: #161627;
-        border-left: 0.25rem solid rgb(131, 131, 243);
       }
     </style>
   </head>
