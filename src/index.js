@@ -125,7 +125,7 @@ app.ws('/api/album', async (ws, req) => {
   try {
     await promisify(exec)(`zip -0rD "data/${folderName}.zip" "data/${folderName}"`);
   } catch(err) {
-    return ws.close(1006, 'Zipping album failed');
+    return ws.close(1011, 'Zipping album failed');
   }
 
   await ws.send(JSON.stringify({key: 'download', data: `data/${folderName}.zip`}));
