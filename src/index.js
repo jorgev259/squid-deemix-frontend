@@ -2,9 +2,10 @@ const express = require('express');
 const deezer = require('deezer-js');
 const deemix = require('deemix');
 const path = require('path');
-const { inspect } = require('util');
+const { inspect, promisify } = require('util');
 const ws = require('ws');
 const fs = require('fs');
+const { exec } = require('child_process');
 
 const port = process.env.PORT || 4500;
 
@@ -83,11 +84,14 @@ app.get('/api/album', async (req, res) => {
 app.ws('/api/album', async (ws, req) => {
   if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
+  let trackpaths = [];
+
   const listener = {
     send(key, data) {
       if (data.downloaded) {
-        ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
-        console.log('downloaded ' + data.downloadPath + ', deleting in 1hr')
+        // ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
+        trackpaths.push(data.downloadPath);
+        console.log('downloaded ' + data.downloadPath + ', deleting in 1hr');
         setTimeout(() => {
           try {
             fs.unlinkSync(data.downloadPath);
@@ -116,6 +120,24 @@ app.ws('/api/album', async (ws, req) => {
   deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
 
   await deemixDownloader.start();
+
+  const folderName = trackpaths[0].split('/').slice(-2)[0];
+  try {
+    await promisify(exec)(`zip -0rD "data/${folderName}.zip" "data/${folderName}"`);
+  } catch(err) {
+    return ws.close(1006, 'Zipping album failed');
+  }
+
+  await ws.send(JSON.stringify({key: 'download', data: `data/${folderName}.zip`}));
+
+  console.log('zipped up data/' + folderName + '.zip, deleting in 1hr');
+  setTimeout(() => {
+    try {
+      fs.unlinkSync('./data/' + folderName + '.zip');
+    } catch(err) {
+      console.log('tried to delete ' + folderName + '.zip, but failed? its likely already gone');
+    }
+  }, 1000 * 60 * 60 /* 1 hour */);
 
   ws.close(1000);
 });

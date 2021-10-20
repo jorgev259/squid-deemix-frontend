@@ -20,7 +20,9 @@ it's intended use is for small groups of people to self-host, and as such there'
 
 3. `npm install`
 
-4. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
+4. install the `zip` linux tool into your path (there are currently no plans for windows support, however feel free to contribute)
+
+5. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
 
 ### nginx addenum
 

@@ -79,7 +79,21 @@ function startDownload(id, isAlbum) {
       log = addlog(log, 'Download finished');
     }
 
-    document.getElementById('progress-album').innerHTML = `<div class="album album-downloading" id="album-${id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="${coverArt}"></span><span class="big">${title || ''}</span><br><span class="small">by ${artist || ''}</span><br><div id="progress-state">${log || ''}</div></div>`;
+    document.getElementById('progress-album').innerHTML = `
+    <div class="album album-downloading" id="album-${id}">
+      <div class="album-metadata">
+        <span class="metadata">
+          <span class="big">${title || ''}</span>
+          <br>
+          <span class="small">by ${artist || ''}</span>
+        </span>
+        <div id="progress-state">${log || ''}</div>
+      </div>
+      <div class="album-image-wrapper">
+        <img class="album-image" width="128" height="128" src="${coverArt}">
+      </div>
+    </div>
+    `;
   }
   ws.onerror = (e) => {
     console.log('error: ' + e);
@@ -176,9 +190,9 @@ window.onload = () => {
     if (d.data.length === 0) return document.getElementById('albums').innerHTML = '<span class="small">Not found!</span>';
 
     for (c of document.getElementById('albums').children) {
-      if (c.children[5]) {
+      if (c.children[0] && c.children[0].children[1]) {
         let id = c.id.split('-')[1];
-        c.children[5].onclick = () => {
+        c.children[0].children[1].onclick = () => {
           clearError();
           startDownload(id, true);
         }
