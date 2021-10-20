@@ -533,19 +533,29 @@
 
       .slider.round:before {
         border-radius: 50%;
-      } 
+      }
+
+      #header-left {
+        width: 100%;
+      }
+      #header-left > * {
+        margin-right: 16px;
+      }
     </style>
   </head>
   <body>
     <div id="header">
-      <span>
+      <div id="header-left">
+        <a href="https://deemix.app" target="_blank" class="big link"><img id="deemix" width="26" height="auto" src="https://deemix.app/assets/img/logo.85a922b8.png"> deemix</a>
+        <a href="https://git.oat.zone/oat/deemix-web-frontend" target="_blank" class="big link"><img id="git" width="26" height="auto" src="https://git-scm.com/images/logos/downloads/Git-Icon-White.png"> git</a>
+      </div>
+
+      <div id="header-right">
         <label class="switch">
           <input type="checkbox" id="theme-switch">
           <span class="slider round"></span>
         </label>
-      </span>
-      <a href="https://deemix.app" target="_blank" class="big link"><img id="deemix" width="26" height="auto" src="https://deemix.app/assets/img/logo.85a922b8.png"> deemix</a>
-      <a href="https://git.oat.zone/oat/deemix-web-frontend" target="_blank" class="big link"><img id="git" width="26" height="auto" src="https://git-scm.com/images/logos/downloads/Git-Icon-White.png"> git</a>
+      </div>
     </div>
     <span id="main">
       <input type="search" id="album-search" name="q">
