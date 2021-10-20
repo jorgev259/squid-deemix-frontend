@@ -28,7 +28,7 @@ function setTheme(theme) {
     if (e.constructor != CSSMediaRule) return;
     if (e.originalConditionText) e.conditionText = e.originalConditionText;
     else e.originalConditionText = e.conditionText
-    if (theme == "system") return
+    if (theme === 'system') return
     let match = e.conditionText.match(/prefers-color-scheme:\s*(light|dark)/i)
     if (!match) return;
     e.conditionText = e.conditionText.replace(match[0], (match[1].toLowerCase() == theme ? 'min' : 'max') + '-width: 0')
@@ -36,8 +36,55 @@ function setTheme(theme) {
 }
 
 function getWebsocketLocation() {
-  return window.window.location.replace('https://', 'wss://').replace('http://', 'ws://');
+  return window.window.location.toString().replace('https://', 'wss://').replace('http://', 'ws://');
 }
+
+function addlog(log, text) {
+  log += `<br>${text}`;
+  log = log.split('<br>').slice(-3).join('<br>');
+  if (log.startsWith('<br>')) log = log.replace('<br>', '');
+  return log;
+}
+
+function startDownload(id, isAlbum) {
+  let log = '';
+
+  let coverArt;
+  let title;
+  let artist;
+
+  let type = isAlbum ? 'album' : 'track'
+  document.getElementById('albums').innerHTML = '';
+  document.getElementById('progress-album').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
+  const ws = new WebSocket(`${getWebsocketLocation()}api/${type}?id=${id}`);
+  ws.onmessage = (m) => {
+    const d = JSON.parse(m.data);
+    console.log(d);
+    if (d.key === 'downloadInfo') {
+      log = addlog(log, `[${d.data.data.title}] ${d.data.state}`);
+    } else if (d.key === 'updateQueue') {
+      if (d.data.progress) {
+        document.getElementById('progress-bar-wrapper').innerHTML = `<br><div id="progress-bar"><div id="progress-bar-inner" style="height:100%;width:${d.data.progress}%"></div></div>`
+      }
+    } else if (d.key === 'coverArt') {
+      log = addlog(log, 'Fetched cover art');
+      coverArt = d.data;
+    } else if (d.key === 'metadata') {
+      log = addlog(log, 'Fetched metadata');
+      title = d.data.title;
+      artist = d.data.artist;
+    } else if (d.key === 'download') {
+      download(d.data);
+    } else if (d.key === 'finishDownload') {
+      //change();
+      return;
+    }
+
+    document.getElementById('progress-album').innerHTML = `<div class="album album-downloading" id="album-${id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="${coverArt}"></span><span class="big">${title || ''}</span><br><span class="small">by ${artist || ''}</span><br><div id="progress-state">${log || ''}</div></div>`;
+  }
+}
+
+let change; // fuck off js
 
 window.onload = () => {
   // dirty theme hacks :tm:
@@ -72,7 +119,7 @@ window.onload = () => {
   const search = document.getElementById('album-search');
   search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
 
-  async function change() {
+  change = async () => {
     const value = document.getElementById('album-search').value;
     if (value === '') return document.getElementById('albums').innerHTML = '';
     document.getElementById('progress-album').innerHTML = '';
@@ -89,25 +136,7 @@ window.onload = () => {
       if (c.children[5]) {
         let id = c.id.split('-')[1];
         c.children[5].onclick = (a) => {
-          let coverArt
-          document.getElementById('albums').innerHTML = '';
-          document.getElementById('progress-album').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
-          const ws = new WebSocket(getWebsocketLocation() + 'api/album?id=' + id);
-          ws.onmessage = (m) => {
-            const d = JSON.parse(m.data);
-
-            if (d.key === 'downloadInfo') {
-              document.getElementById('progress-album').innerHTML = `<div class="album" id="album-${d.data.data.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="${coverArt}"></span><span class="big">${d.data.data.title}</span><br><span class="small">by ${d.data.data.artist}</span><br><span class="small" id="progress-state">${d.data.state}</span></div>`;
-            } else if (d.key === 'updateQueue') {
-              if (d.data.progress) {
-                document.getElementById('progress-bar-wrapper').innerHTML = `<br><div id="progress-bar"><div id="progress-bar-inner" style="height:100%;width:${d.data.progress}%"></div></div>`
-              }
-            } else if (d.key === 'coverArt') {
-              coverArt = d.data;
-            } else if (d.key === 'download') {
-              download(d.data);
-            }
-          }
+          startDownload(id, true);
         }
       }
       let id = c.id.split('-')[1];
@@ -121,29 +150,7 @@ window.onload = () => {
           let trackId = track.id.split('-')[1];
           track.children[1].children[0].onclick = () => {
             console.log(trackId);
-
-            let coverArt
-            document.getElementById('albums').innerHTML = '';
-            document.getElementById('progress-album').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
-            const ws = new WebSocket(getWebsocketLocation() + 'api/track?id=' + trackId);
-            ws.onmessage = (m) => {
-              const d = JSON.parse(m.data);
-              console.log(d);
-
-              if (d.key === 'downloadInfo') {
-                document.getElementById('progress-album').innerHTML = `<div class="album" id="album-${d.data.data.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="${coverArt}"></span><span class="big">${d.data.data.title}</span><br><span class="small">by ${d.data.data.artist}</span><br><span class="small" id="progress-state">${d.data.state}</span></div>`;
-              } else if (d.key === 'updateQueue') {
-                if (d.data.progress) {
-                  document.getElementById('progress-bar-wrapper').innerHTML = `<br><div id="progress-bar"><div id="progress-bar-inner" style="height:100%;width:${d.data.progress}%"></div></div>`
-                }
-              } else if (d.key === 'coverArt') {
-                coverArt = d.data;
-              } else if (d.key === 'download') {
-                download(d.data);
-              } else if (d.key === 'finishDownload') {
-                change();
-              }
-            }
+            startDownload(trackId, false);
           }
         }
       }

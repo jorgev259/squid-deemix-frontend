@@ -82,6 +82,9 @@
   .slider {
     background-color: rgb(131, 131, 243);
   }
+  #progress-state {
+    background-color: #0a0a0f;
+  }
 }
 @media (prefers-color-scheme: light) {
   body {
@@ -166,6 +169,9 @@
   }
   #git {
     filter: invert(100%);
+  }
+  #progress-state {
+    background-color: #fafafa;
   }
 }
 
@@ -397,4 +403,19 @@ input:checked + .slider:before {
 }
 #header-left > * {
   margin-right: 16px;
+}
+
+#progress-state {
+  font-family: monospace;
+  font-size: 12px;
+  max-height: 50px;
+  border-radius: 10px;
+  overflow: auto;
+  width: 60%;
+  margin-top: 5px;
+  padding: 2px;
+}
+
+.album-downloading {
+  border-radius: 10px;
 }

@@ -97,7 +97,7 @@ app.ws('/api/album', async (ws, req) => {
         }, 1000 * 60 * 60 /* 1 hour */);
       }
 
-      ws.send(JSON.stringify({key, data}));
+      if (data.state !== 'tagging' && data.state !== 'getAlbumArt' && data.state !== 'getTags') ws.send(JSON.stringify({key, data}));
       //console.log(`[${key}] ${inspect(data)}`);
     }
   };
@@ -110,6 +110,7 @@ app.ws('/api/album', async (ws, req) => {
   }
 
   listener.send('coverArt', album.cover_medium);
+  listener.send('metadata', {id: album.id, title: album.title, artist: album.artist.name});
 
   let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, deezer.TrackFormats.FLAC);
   deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
@@ -135,8 +136,8 @@ app.ws('/api/track', async (ws, req) => {
         }, 1000 * 60 * 60 /* 1 hour */);
       }
 
-      ws.send(JSON.stringify({key, data}));
-      console.log(`[${key}] ${inspect(data)}`);
+      if (data.state !== 'tagging' && data.state !== 'getAlbumArt' && data.state !== 'getTags') ws.send(JSON.stringify({key, data}));
+      //console.log(`[${key}] ${inspect(data)}`);
     }
   };
 
@@ -148,6 +149,7 @@ app.ws('/api/track', async (ws, req) => {
   }
 
   listener.send('coverArt', track.album.cover_medium);
+  listener.send('metadata', {id: track.id, title: track.title, artist: track.artist.name});
 
   let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, deezer.TrackFormats.FLAC);
   deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
