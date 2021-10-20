@@ -169,6 +169,11 @@ window.onload = () => {
     'zomboy - end game',
     'dr. ozi - host ep',
     'nitepunk - absolute zero',
+    '2 mello - sounds of tokyo-to future',
+    'must die - crisis vision redux',
+    'moe shop - notice',
+    'cysmix - escapism',
+    'rogue - rattlesnake'
   ];
 
   const search = document.getElementById('album-search');
