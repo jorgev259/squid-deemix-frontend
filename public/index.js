@@ -140,15 +140,35 @@ window.onload = () => {
     setTheme(document.getElementById('theme-switch').checked ? 'dark' : 'light');
   });
 
+  // list of based music
   const placeholders = [
     'xilent - we are dust',
     'joyryde - brave',
     'phaseone - the risen ep',
-    'blanke & godlands - hellraiser',
+    // 'blanke & godlands - hellraiser', // deemix search sucks and this doesnt actually work
     'camellia - blackmagik blazing',
     't+pazolite - without permission',
     'the brig - vindicate',
-    'bossfight - next wave'
+    'bossfight - next wave',
+    'matt doe - g.a.s.',
+    'virtual riot - save yourself ep',
+    'panda eyes - hold on',
+    'clockvice - disgrace',
+    'scheme - quake',
+    'eliminate - belly of the beast ep',
+    'apriskah - mistakes ep',
+    'dog blood - turn off the lights',
+    'silentroom - memory waves',
+    'metaroom - metadata',
+    'prismo - nightmare',
+    'ray volpe - rise of the volpetron',
+    'eliminate - mula',
+    'vorso - full tilt',
+    'billiummoto - link(init)',
+    'voltra - radar dx',
+    'zomboy - end game',
+    'dr. ozi - host ep',
+    'nitepunk - absolute zero',
   ];
 
   const search = document.getElementById('album-search');
