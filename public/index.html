@@ -34,6 +34,8 @@
         function formatTime(s) {
           return Math.floor(s / 60).toString().padStart(2, '0') + ':' + (s % 60).toString().padStart(2, '0');
         }
+
+        // this is literally a find replace in the css
         function setTheme(theme) {
           Array.from(document.styleSheets).map(e => {
             try {
@@ -52,9 +54,23 @@
           });
         }
 
+        // dirty theme hacks :tm:
+
+        const color = window.getComputedStyle(document.querySelector('body')).getPropertyValue('color');
+        const rgbRegex = /rgb\((\d+), ?(\d+), ?(\d+)\)/;
+        const r = rgbRegex.exec(color);
+
+        let brightness = (Number(r[1]) + Number(r[2]) + Number(r[3])) / (255 * 3);
+
+        if (brightness > 0.5) { // light text, dark theme
+          document.getElementById('theme-switch').checked = true
+        } else { // dark text, light theme
+          document.getElementById('theme-switch').checked = false
+        }
+
         document.getElementById('theme-switch').addEventListener('click', () => {
           setTheme(document.getElementById('theme-switch').checked ? 'dark' : 'light');
-        })
+        });
 
         const search = document.getElementById('album-search');
         search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
