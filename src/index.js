@@ -58,7 +58,12 @@ app.get('/api/album', async (req, res) => {
 
 app.get('/api/album', async (req, res) => {
   if (!req.query.id) return req.sendStatus(400);
-  const album = await deezerInstance.api.get_album(req.query.id);
+  let album;
+  try {
+    album = await deezerInstance.api.get_album(req.query.id);
+  } catch (err) {
+    return req.status(404).send('Album not found!');
+  }
   res.send({
     id: album.id,
     title: album.title,
@@ -76,7 +81,7 @@ app.get('/api/album', async (req, res) => {
 });
 
 app.ws('/api/album', async (ws, req) => {
-  if (!req.query.id) return ws.close();
+  if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
   const listener = {
     send(key, data) {
@@ -87,7 +92,7 @@ app.ws('/api/album', async (ws, req) => {
           try {
             fs.unlinkSync(data.downloadPath);
           } catch(err) {
-            console.log('tried to delete ' + data.downloadPath + ', but failed? its likely already gone')
+            console.log('tried to delete ' + data.downloadPath + ', but failed? its likely already gone');
           }
         }, 1000 * 60 * 60 /* 1 hour */);
       }
@@ -101,7 +106,7 @@ app.ws('/api/album', async (ws, req) => {
   try {
     album = await deezerInstance.api.get_album(req.query.id);
   } catch(err) {
-    return ws.close();
+    return ws.close(1012, 'Album not found');
   }
 
   listener.send('coverArt', album.cover_medium);
@@ -111,18 +116,22 @@ app.ws('/api/album', async (ws, req) => {
 
   await deemixDownloader.start();
 
-  ws.close();
+  ws.close(1000);
 });
 
 app.ws('/api/track', async (ws, req) => {
-  if (!req.query.id) return ws.close();
+  if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
   const listener = {
     send(key, data) {
       if (data.downloaded) {
         ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
         setTimeout(() => {
-          fs.unlinkSync(data.downloadPath);
+          try {
+            fs.unlinkSync(data.downloadPath);
+          } catch(err) {
+            console.log('tried to delete ' + data.downloadPath + ', but failed? its likely already gone');
+          }
         }, 1000 * 60 * 60 /* 1 hour */);
       }
 
@@ -135,7 +144,7 @@ app.ws('/api/track', async (ws, req) => {
   try {
     track = await deezerInstance.api.get_track(req.query.id);
   } catch(err) {
-    return ws.close();
+    return ws.close(1012, 'Track not found');
   }
 
   listener.send('coverArt', track.album.cover_medium);
@@ -145,7 +154,7 @@ app.ws('/api/track', async (ws, req) => {
 
   await deemixDownloader.start();
 
-  ws.close();
+  ws.close(1000);
 });
 
 deezerInstance.login_via_arl(process.env.DEEZER_ARL).then(() => {
