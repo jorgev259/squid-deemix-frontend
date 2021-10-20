@@ -3,11 +3,14 @@ const deezer = require('deezer-js');
 const deemix = require('deemix');
 const path = require('path');
 const { inspect, promisify } = require('util');
-const ws = require('ws');
 const fs = require('fs');
 const { exec } = require('child_process');
+const timeago = require('timeago.js');
 
 const port = process.env.PORT || 4500;
+// const deleteTimer = 1000 * 60 * 60; // 1 hour
+const deleteTimer = 1000 * 60 * 25; // 25 minutes
+// const deleteTimer = 16000;
 
 require('dotenv').config();
 
@@ -20,6 +23,66 @@ let deemixSettings = deemix.settings.DEFAULTS
 deemixSettings.downloadLocation = path.join(process.cwd(), 'data/');
 deemixSettings.maxBitrate = String(deezer.TrackFormats.FLAC);
 deemixSettings.overwriteFile = deemix.settings.OverwriteOption.OVERWRITE;
+
+const toDeleteLocation = './data/toDelete.json';
+
+if (!fs.existsSync(toDeleteLocation)) fs.writeFileSync(toDeleteLocation, '[]', {encoding: 'utf8'});
+let toDelete = JSON.parse(fs.readFileSync(toDeleteLocation, {encoding: 'utf8'}));
+
+function updateQueueFile() {
+  fs.writeFileSync(toDeleteLocation, JSON.stringify(toDelete), {encoding: 'utf8'});
+}
+
+function queueDeletion(file) {
+  console.log(`queued deletion of ${file} ${timeago.format(Date.now() + deleteTimer)}`);
+
+  toDelete.push({
+    date: Date.now() + deleteTimer,
+    file
+  });
+  setTimeout(() => {
+    toDelete = toDelete.filter(c => c.file !== file);
+    updateQueueFile();
+    console.log(`deleting queued file ${file}`);
+    try {
+      fs.unlinkSync(file);
+    } catch(err) {
+      console.log(`failed to delete ${file}! is the file already gone?`);
+    }
+  }, deleteTimer);
+  updateQueueFile();
+}
+
+console.log(`loaded ${toDelete.length} items in deletion queue`);
+let updateQueue = false;
+for (let del of toDelete) {
+  if (Date.now() - del.date >= 0) {
+    console.log(`deleting ${del.file} - was meant to be deleted ${timeago.format(del.date)}`);
+    updateQueue = true;
+    try {
+      fs.unlinkSync(del.file);
+    } catch(err) {
+      console.log(`failed to delete ${del.file}! is the file already gone?`);
+    }
+    delete del;
+  } else {
+    console.log(`queueing deletion of ${del.file} ${timeago.format(del.date)}`);
+    setTimeout(() => {
+      toDelete = toDelete.filter(c => c.file !== del.file);
+      updateQueueFile();
+      try {
+        fs.unlinkSync(del.file);
+      } catch(err) {
+        console.log(`failed to delete ${del.file}! is the file already gone?`);
+      }
+    }, del.date - Date.now());
+  }
+};
+
+if (updateQueue) {
+  updateQueueFile();
+  console.log('updated deletion queue json');
+}
 
 app.use(express.static('public'));
 app.use('/data', express.static('data', {extensions:  ['flac', 'mp3']}));
@@ -44,18 +107,6 @@ app.get('/api/search', async (req, res) => {
 
   res.send(format);
 });
-
-/*
-app.get('/api/album', async (req, res) => {
-  if (!req.query.id) return res.sendStatus(400);
-  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, deezer.TrackFormats.FLAC);
-  deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
-
-  console.log(await deemixDownloader.start());
-
-  res.send('a');
-});
-*/
 
 app.get('/api/album', async (req, res) => {
   if (!req.query.id) return req.sendStatus(400);
@@ -91,14 +142,7 @@ app.ws('/api/album', async (ws, req) => {
       if (data.downloaded) {
         // ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
         trackpaths.push(data.downloadPath);
-        console.log('downloaded ' + data.downloadPath + ', deleting in 1hr');
-        setTimeout(() => {
-          try {
-            fs.unlinkSync(data.downloadPath);
-          } catch(err) {
-            console.log('tried to delete ' + data.downloadPath + ', but failed? its likely already gone');
-          }
-        }, 1000 * 60 * 60 /* 1 hour */);
+        queueDeletion(data.downloadPath);
       }
 
       if (data.state !== 'tagging' && data.state !== 'getAlbumArt' && data.state !== 'getTags') ws.send(JSON.stringify({key, data}));
@@ -121,25 +165,22 @@ app.ws('/api/album', async (ws, req) => {
 
   await deemixDownloader.start();
 
-  await ws.send(JSON.stringify({key: 'zipping'}));
+  if (trackpaths.length > 1) {
+    await ws.send(JSON.stringify({key: 'zipping'}));
 
-  const folderName = trackpaths[0].split('/').slice(-2)[0];
-  try {
-    await promisify(exec)(`zip -0rD "data/${folderName}.zip" "data/${folderName}"`);
-  } catch(err) {
-    return ws.close(1011, 'Zipping album failed');
-  }
-
-  await ws.send(JSON.stringify({key: 'download', data: `data/${folderName}.zip`}));
-
-  console.log('zipped up data/' + folderName + '.zip, deleting in 1hr');
-  setTimeout(() => {
+    const folderName = trackpaths[0].split('/').slice(-2)[0];
     try {
-      fs.unlinkSync('./data/' + folderName + '.zip');
+      await promisify(exec)(`zip -0rD "data/${folderName}.zip" "data/${folderName}"`);
     } catch(err) {
-      console.log('tried to delete ' + folderName + '.zip, but failed? its likely already gone');
+      return ws.close(1011, 'Zipping album failed');
     }
-  }, 1000 * 60 * 60 /* 1 hour */);
+  
+    await ws.send(JSON.stringify({key: 'download', data: `data/${folderName}.zip`}));
+  
+    queueDeletion('./data/' + folderName + '.zip');
+  } else {
+    await ws.send(JSON.stringify({key: 'download', data: trackpaths[0].replace(process.cwd(), '')}));
+  }
 
   ws.close(1000);
 });
@@ -151,13 +192,7 @@ app.ws('/api/track', async (ws, req) => {
     send(key, data) {
       if (data.downloaded) {
         ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
-        setTimeout(() => {
-          try {
-            fs.unlinkSync(data.downloadPath);
-          } catch(err) {
-            console.log('tried to delete ' + data.downloadPath + ', but failed? its likely already gone');
-          }
-        }, 1000 * 60 * 60 /* 1 hour */);
+        queueDeletion(data.downloadPath);
       }
 
       if (data.state !== 'tagging' && data.state !== 'getAlbumArt' && data.state !== 'getTags') ws.send(JSON.stringify({key, data}));
