@@ -211,7 +211,7 @@ input {
   font-size: large;
   border-radius: 10px 10px 0px 0px;
   transition: 0.1s border-left ease-out, 0.1s background-color ease-in-out;
-  height: 96px;
+  min-height: 96px;
   display: flex;
   justify-content: space-between;
 }
@@ -423,12 +423,10 @@ input:checked + .slider:before {
 #progress-state {
   font-family: monospace;
   font-size: 12px;
-  max-height: 50px;
   border-radius: 10px;
-  overflow: auto;
-  width: 60%;
-  margin-top: 5px;
-  padding: 2px;
+  width: 80%;
+  padding: 6px;
+  height: 110px;
 }
 
 .album-downloading {

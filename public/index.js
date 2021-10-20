@@ -41,7 +41,7 @@ function getWebsocketLocation() {
 
 function addlog(log, text) {
   log += `<br>${text}`;
-  log = log.split('<br>').slice(-3).join('<br>');
+  log = log.split('<br>').slice(-5).join('<br>');
   if (log.startsWith('<br>')) log = log.replace('<br>', '');
   return log;
 }
@@ -77,6 +77,8 @@ function startDownload(id, isAlbum) {
       download(d.data);
     } else if (d.key === 'finishDownload') {
       log = addlog(log, 'Download finished');
+    } else if (d.key === 'zipping') {
+      log = addlog(log, 'Zipping up files');
     }
 
     document.getElementById('progress-album').innerHTML = `

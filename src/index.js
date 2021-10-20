@@ -121,6 +121,8 @@ app.ws('/api/album', async (ws, req) => {
 
   await deemixDownloader.start();
 
+  await ws.send(JSON.stringify({key: 'zipping'}));
+
   const folderName = trackpaths[0].split('/').slice(-2)[0];
   try {
     await promisify(exec)(`zip -0rD "data/${folderName}.zip" "data/${folderName}"`);
