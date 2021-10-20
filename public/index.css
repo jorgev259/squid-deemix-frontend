@@ -212,6 +212,8 @@ input {
   border-radius: 10px 10px 0px 0px;
   transition: 0.1s border-left ease-out, 0.1s background-color ease-in-out;
   height: 96px;
+  display: flex;
+  justify-content: space-between;
 }
 .small {
   font-size: medium;
@@ -234,28 +236,33 @@ input {
   height: 100%;
   border-radius: 10px;
   transition: 0.1s border ease-out, 0.1s box-shadow ease-out;
-  margin: none;
-  padding: none;
+  width: 96px;
+  height: 96px;
 }
 .album-image-wrapper {
   transition: 0.1s border ease-out;
-  float: right;
-  max-height: 100%;
-  width: 96px;
-  padding: none;
-  margin: none;
+}
+.album-metadata {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.metadata {
+  height: 100%;
 }
 .link {
   cursor: pointer;
   transition: 0.1s color ease-out, 0.1s filter ease-out;
 }
 .album-download {
-  position: relative;
-  top: 20px;
   width: 32px;
   height: 32px;
   cursor: pointer;
   transition: 0.1s filter ease-out;
+}
+.track .album-download {
+  position: relative;
+  top: 20px;
 }
 .lds-ring {
   display: inline-block;
