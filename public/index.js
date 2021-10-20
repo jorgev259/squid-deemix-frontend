@@ -76,17 +76,36 @@ function startDownload(id, isAlbum) {
     } else if (d.key === 'download') {
       download(d.data);
     } else if (d.key === 'finishDownload') {
-      //change();
-      return;
+      log = addlog(log, 'Download finished');
     }
 
     document.getElementById('progress-album').innerHTML = `<div class="album album-downloading" id="album-${id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="${coverArt}"></span><span class="big">${title || ''}</span><br><span class="small">by ${artist || ''}</span><br><div id="progress-state">${log || ''}</div></div>`;
   }
+  ws.onerror = (e) => {
+    console.log('error: ' + e);
+    error(e.toString());
+  }
+  ws.onclose = (e) => {
+    change();
+    if (e.code !== 1000) error(`websocket closed unexpectedly with code ${e.code}\n${e.reason}`);
+  }
+}
+
+function error(e) {
+  document.getElementById('error').innerHTML = `<div class="big">error!</div>${e.split('\n').join('<br>')}`;
+  document.getElementById('error').style.display = 'block';
+  console.error(e);
+}
+function clearError() {
+  document.getElementById('error').innerHTML = '';
+  document.getElementById('error').style.display = 'none';
 }
 
 let change; // fuck off js
 
 window.onload = () => {
+  clearError();
+
   // dirty theme hacks :tm:
 
   const color = window.getComputedStyle(document.querySelector('body')).getPropertyValue('color');
@@ -120,12 +139,20 @@ window.onload = () => {
   search.setAttribute('placeholder', placeholders[Math.floor(Math.random() * placeholders.length)]);
 
   change = async () => {
+    clearError();
     const value = document.getElementById('album-search').value;
     if (value === '') return document.getElementById('albums').innerHTML = '';
     document.getElementById('progress-album').innerHTML = '';
     document.getElementById('progress-bar-wrapper').innerHTML = '';
     document.getElementById('albums').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
-    const d = await axios.get('/api/search', {params: {search: value}});
+    let d;
+    try {
+      d = await axios.get('/api/search', {params: {search: value}});
+    } catch(err) {
+      error(err.toString());
+      document.getElementById('albums').innerHTML = '';
+      return;
+    }
     document.getElementById('albums').innerHTML = d.data.map(d =>
       `<div class="album" id="album-${d.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg"></span><span class="big">${d.title}</span><br><span class="small">by ${d.artist.name}</span><br><img class="album-download" width="48" height="48" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></div><div class="album-bottom" id="album-bottom-${d.id}"></div>`
     ).join('<br>');
@@ -135,21 +162,30 @@ window.onload = () => {
     for (c of document.getElementById('albums').children) {
       if (c.children[5]) {
         let id = c.id.split('-')[1];
-        c.children[5].onclick = (a) => {
+        c.children[5].onclick = () => {
+          clearError();
           startDownload(id, true);
         }
       }
       let id = c.id.split('-')[1];
       if (document.getElementById('album-bottom-' + id)) {
         document.getElementById('album-bottom-' + id).innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
-        const album = await axios.get('/api/album', {params: {id: id}});
+        let album;
+        try {
+          album = await axios.get('/api/album', {params: {id: id}});
+        } catch(err) {
+          error(err.toString());
+          document.getElementById('album-bottom-' + id).innerHTML = '';
+          return;
+        }
+
         document.getElementById('album-bottom-' + id).innerHTML = album.data.tracks.map(d =>
           `<div class="track" id="track-${d.id}"><span>${d.artist} - ${d.title}</span><span><span class="track-download-wrapper"><img class="album-download" width="32" height="32" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></span> ${formatTime(d.duration)}</span></div>`
         ).join('');
         for (track of document.getElementById('album-bottom-' + id).children) {
           let trackId = track.id.split('-')[1];
           track.children[1].children[0].onclick = () => {
-            console.log(trackId);
+            clearError();
             startDownload(trackId, false);
           }
         }

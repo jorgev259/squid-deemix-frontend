@@ -419,3 +419,17 @@ input:checked + .slider:before {
 .album-downloading {
   border-radius: 10px;
 }
+
+.error {
+  background-color: rgb(255, 155, 155, 0.3);
+  padding: 20px;
+  border-radius: 15px;
+  border: 3px solid rgb(255, 155, 155, 0.8);
+  text-align: center;
+  margin: 15px;
+  width: 400px;
+  display: none; /* this is changed by the js */
+}
+.error .big {
+  font-size: x-large;
+}
