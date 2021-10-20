@@ -35,6 +35,10 @@ function setTheme(theme) {
   });
 }
 
+function getWebsocketLocation() {
+  return window.window.location.replace('https://', 'wss://').replace('http://', 'ws://');
+}
+
 window.onload = () => {
   // dirty theme hacks :tm:
 
@@ -88,7 +92,7 @@ window.onload = () => {
           let coverArt
           document.getElementById('albums').innerHTML = '';
           document.getElementById('progress-album').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
-          const ws = new WebSocket('wss://deemix.oat.zone/api/album?id=' + id);
+          const ws = new WebSocket(getWebsocketLocation() + 'api/album?id=' + id);
           ws.onmessage = (m) => {
             const d = JSON.parse(m.data);
 
@@ -121,7 +125,7 @@ window.onload = () => {
             let coverArt
             document.getElementById('albums').innerHTML = '';
             document.getElementById('progress-album').innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
-            const ws = new WebSocket('wss://deemix.oat.zone/api/track?id=' + trackId);
+            const ws = new WebSocket(getWebsocketLocation() + 'api/track?id=' + trackId);
             ws.onmessage = (m) => {
               const d = JSON.parse(m.data);
               console.log(d);

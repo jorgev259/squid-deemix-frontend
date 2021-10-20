@@ -20,9 +20,7 @@ it's intended use is for small groups of people to self-host, and as such there'
 
 3. `npm install`
 
-4. replace all mentions of `deemix.oat.zone` in `public/index.html` with your own domain (and `wss://` with `ws://` if needed)
-
-5. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
+4. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
 
 ### nginx addenum
 
