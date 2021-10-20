@@ -46,13 +46,14 @@
     color:rgb(131, 131, 243);
   }
   .link:hover {
-    color: rgb(151, 151, 263);
+    color: rgb(151, 151, 255);
+    filter: drop-shadow( 0px 0px 2px #8383F3);
   }
   .album-download {
-    filter: invert(100%) hue-rotate(180deg);
+    filter: invert(100%);
   }
   .album-download:hover {
-    filter: invert(100%) sepia(100%) saturate(800%) brightness(70%) hue-rotate(180deg);
+    filter: invert(50%) sepia(58%) saturate(893%) hue-rotate(206deg) brightness(99%) contrast(92%) drop-shadow( 0px 0px 5px #8383F3);
   }
   .lds-ring div {
     border: 8px solid #fff;
@@ -81,6 +82,9 @@
   }
   .slider {
     background-color: rgb(131, 131, 243);
+  }
+  .slider:hover {
+    filter: drop-shadow( 0px 0px 5px #8383F3);
   }
   #progress-state {
     background-color: #0a0a0f;
@@ -132,12 +136,13 @@
   }
   .link:hover {
     color: #f484b6;
+    filter: drop-shadow( 0px 0px 2px #f484b6);
   }
   .album-download {
-    filter: invert(0%) hue-rotate(276deg);
+    filter: none;
   }
   .album-download:hover {
-    filter: invert(100%) sepia(100%) saturate(2000%) brightness(70%) hue-rotate(276deg);
+    filter: invert(65%) sepia(45%) saturate(772%) hue-rotate(295deg) brightness(103%) contrast(91%) drop-shadow( 0px 0px 5px #f484b6);
   }
   .lds-ring div {
     border: 8px solid #1e1e2d;
@@ -166,6 +171,9 @@
   }
   .slider {
     background-color: #ea74ac;
+  }
+  .slider:hover {
+    filter: drop-shadow( 0px 0px 5px #ea74ac);
   }
   #git {
     filter: invert(100%);
@@ -239,7 +247,7 @@ input {
 }
 .link {
   cursor: pointer;
-  transition: 0.1s color ease-out;
+  transition: 0.1s color ease-out, 0.1s filter ease-out;
 }
 .album-download {
   position: relative;
@@ -367,8 +375,8 @@ input {
   left: 0;
   right: 0;
   bottom: 0;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: .2s;
+  transition: .2s;
 }
 
 .slider:before {
@@ -379,8 +387,8 @@ input {
   left: 4px;
   bottom: 4px;
   background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: .2s;
+  transition: .2s;
 }
 
 input:checked + .slider:before {

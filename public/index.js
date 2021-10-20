@@ -154,7 +154,7 @@ window.onload = () => {
       return;
     }
     document.getElementById('albums').innerHTML = d.data.map(d =>
-      `<div class="album" id="album-${d.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg"></span><span class="big">${d.title}</span><br><span class="small">by ${d.artist.name}</span><br><img class="album-download" width="48" height="48" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></div><div class="album-bottom" id="album-bottom-${d.id}"></div>`
+      `<div class="album" id="album-${d.id}"><span class="album-image-wrapper"><img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg"></span><span class="big">${d.title}</span><br><span class="small">by ${d.artist.name}</span><br><img class="album-download" width="48" height="48" src="assets/download.svg"></div><div class="album-bottom" id="album-bottom-${d.id}"></div>`
     ).join('<br>');
 
     if (d.data.length === 0) return document.getElementById('albums').innerHTML = '<span class="small">Not found!</span>';
@@ -180,7 +180,7 @@ window.onload = () => {
         }
 
         document.getElementById('album-bottom-' + id).innerHTML = album.data.tracks.map(d =>
-          `<div class="track" id="track-${d.id}"><span>${d.artist} - ${d.title}</span><span><span class="track-download-wrapper"><img class="album-download" width="32" height="32" src="https://img.icons8.com/material-sharp/48/000000/download--v1.png"></span> ${formatTime(d.duration)}</span></div>`
+          `<div class="track" id="track-${d.id}"><span>${d.artist} - ${d.title}</span><span><span class="track-download-wrapper"><img class="album-download" width="32" height="32" src="assets/download.svg"></span> ${formatTime(d.duration)}</span></div>`
         ).join('');
         for (track of document.getElementById('album-bottom-' + id).children) {
           let trackId = track.id.split('-')[1];
