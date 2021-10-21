@@ -1,3 +1,10 @@
+const h = window.window.location.hostname;
+if (!h || h.includes('localhost')) {
+  window.document.title = 'deemix-web-frontend';
+} else {
+  window.document.title = window.window.location.hostname
+}
+
 function download(url) {
   console.log(url);
   fetch(url)
