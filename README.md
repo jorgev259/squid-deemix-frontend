@@ -16,7 +16,7 @@ it's intended use is for small groups of people to self-host, and as such there'
 
    your arl can be found in the local storage for deezer, as a value conviniently named `arl`
 
-2. (optionally) set a `PORT` value in your `.env` file. (if unset, this will fall back to 4500)
+2. (optionally) copy the config.example.json to config.json in the same folder, and modify it
 
 3. `npm install`
 

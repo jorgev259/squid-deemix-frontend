@@ -2,15 +2,25 @@ const express = require('express');
 const deezer = require('deezer-js');
 const deemix = require('deemix');
 const path = require('path');
-const { inspect, promisify } = require('util');
+const { promisify } = require('util');
 const fs = require('fs');
 const { exec } = require('child_process');
 const timeago = require('timeago.js');
+const toml = require('toml');
 
-const port = process.env.PORT || 4500;
-// const deleteTimer = 1000 * 60 * 60; // 1 hour
-const deleteTimer = 1000 * 60 * 25; // 25 minutes
-// const deleteTimer = 16000;
+if (!fs.existsSync('./config.toml')) {
+  if (!fs.existsSync('./config.example.toml')) {
+    console.error('!! no config.toml OR config.example.toml found!!! what the hell are you up to!!!');
+    process.exit(1);
+  }
+  console.log('! copying config.example.toml to config.toml as it was not found. the default config may not be preferable!');
+  fs.copyFileSync('./config.example.toml', './config.toml');
+}
+const config = toml.parse(fs.readFileSync('./config.toml'));
+console.log('loaded config');
+
+const port = config.server.port || 4500;
+const deleteTimer = config.timer.deleteTimer || 1000 * 60 * 25;
 
 require('dotenv').config();
 
@@ -21,8 +31,20 @@ let deemixDownloader;
 
 let deemixSettings = deemix.settings.DEFAULTS
 deemixSettings.downloadLocation = path.join(process.cwd(), 'data/');
-deemixSettings.maxBitrate = String(deezer.TrackFormats.FLAC);
-deemixSettings.overwriteFile = deemix.settings.OverwriteOption.OVERWRITE;
+deemixSettings.overwriteFile = deemix.settings.OverwriteOption.ONLY_TAGS;
+
+deemixSettings.maxBitrate = String(deezer.TrackFormats[config.deemix.trackFormat]);
+deemixSettings.tracknameTemplate = config.deemix.trackNameTemplate || '%artist% - %title%';
+deemixSettings.albumTracknameTemplate = config.deemix.albumTrackNameTemplate || '%tracknumber%. %artist% - %title%';
+deemixSettings.albumNameTemplate = config.deemix.albumNameTemplate || '%artist% - %album%'
+deemixSettings.createM3U8File = config.deemix.createM3U8File !== undefined ? config.deemix.createM3U8File : false;
+deemixSettings.embeddedArtworkPNG = config.deemix.embeddedArtworkPNG !== undefined ? config.deemix.embeddedArtworkPNG : true;
+deemixSettings.embeddedArtworkSize = config.deemix.embeddedArtworkSize || 800;
+deemixSettings.saveArtwork = config.deemix.saveArtwork !== undefined ? config.deemix.saveArtwork : true;
+deemixSettings.localArtworkSize = deemixSettings.localArtworkSize || 1200;
+deemixSettings.localArtworkFormat = deemixSettings.localArtworkFormat || 'jpg';
+deemixSettings.jpegImageQuality = deemixSettings.jpegImageQuality || 80;
+deemixSettings.removeDuplicateArtists = config.deemix.removeDuplicateArtists !== undefined ? config.deemix.removeDuplicateArtists : true;
 
 const toDeleteLocation = './data/toDelete.json';
 
@@ -90,7 +112,7 @@ app.get('/api/search', async (req, res) => {
   if (!req.query.search) return res.sendStatus(400);
 
   let s = await deezerInstance.api.search_album(req.query.search, {
-    limit: 15,
+    limit: config.limits.searchLimit || 15,
   });
 
   let format = s.data.map(s => {
@@ -170,13 +192,13 @@ app.ws('/api/album', async (ws, req) => {
 
     const folderName = trackpaths[0].split('/').slice(-2)[0];
     try {
-      await promisify(exec)(`zip -0rD "data/${folderName}.zip" "data/${folderName}"`);
+      await promisify(exec)(`${config.server.zipBinaryLocation} ${config.server.zipArguments} "data/${folderName}.zip" "data/${folderName}"`);
     } catch(err) {
       return ws.close(1011, 'Zipping album failed');
     }
-  
+
     await ws.send(JSON.stringify({key: 'download', data: `data/${folderName}.zip`}));
-  
+
     queueDeletion('./data/' + folderName + '.zip');
   } else {
     await ws.send(JSON.stringify({key: 'download', data: trackpaths[0].replace(process.cwd(), '')}));

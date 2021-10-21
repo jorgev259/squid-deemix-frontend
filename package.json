@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "express-ws": "^5.0.2",
     "timeago.js": "^4.0.2",
+    "toml": "^3.0.0",
     "ws": "^8.2.3"
   },
   "optionalDependencies": {

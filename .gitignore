@@ -145,3 +145,4 @@ dist
 .nfs*
 
 data/**
+config.json
