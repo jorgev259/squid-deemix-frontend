@@ -29,7 +29,7 @@ const logger = winston.createLogger({
 		winston.format.simple()
 	),
 	transports: [
-		new winston.transports.File({filename: 'deemix-web-fe-error.log', level: 'error'}),
+		new winston.transports.File({filename: 'deemix-web-fe-error.log', level: 'warn'}),
 		new winston.transports.File({filename: 'deemix-web-fe.log'}),
     new winston.transports.Console({
       format: winston.format.combine(
@@ -188,6 +188,7 @@ app.get('/api/album', async (req, res) => {
     album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
     if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
   } catch (err) {
+    logger.error(err.toString());
     return req.status(404).send('Album not found!');
   }
   res.send({
@@ -229,6 +230,7 @@ app.ws('/api/album', async (ws, req) => {
     album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
     if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
   } catch(err) {
+    logger.error(err.toString());
     return ws.close(1012, 'Album not found');
   }
 
@@ -247,6 +249,7 @@ app.ws('/api/album', async (ws, req) => {
     try {
       await promisify(exec)(`${config.server.zipBinaryLocation} ${config.server.zipArguments} "data/${folderName}.zip" "data/${folderName}"`);
     } catch(err) {
+      logger.error(err.toString());
       return ws.close(1011, 'Zipping album failed');
     }
 
@@ -280,6 +283,7 @@ app.ws('/api/track', async (ws, req) => {
     track = trackcache[req.query.id] || (await deezerInstance.api.get_track(req.query.id));
     if (!trackcache[req.query.id]) trackcache[req.query.id] = track;
   } catch(err) {
+    logger.error(err.toString());
     return ws.close(1012, 'Track not found');
   }
 
