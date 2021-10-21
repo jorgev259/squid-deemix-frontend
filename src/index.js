@@ -57,6 +57,7 @@ console.log(`loaded ${toDelete.length} items in deletion queue`);
 let updateQueue = false;
 for (let del of toDelete) {
   if (Date.now() - del.date >= 0) {
+    toDelete = toDelete.filter(c => c.file !== del.file);
     console.log(`deleting ${del.file} - was meant to be deleted ${timeago.format(del.date)}`);
     updateQueue = true;
     try {
@@ -64,7 +65,6 @@ for (let del of toDelete) {
     } catch(err) {
       console.log(`failed to delete ${del.file}! is the file already gone?`);
     }
-    delete del;
   } else {
     console.log(`queueing deletion of ${del.file} ${timeago.format(del.date)}`);
     setTimeout(() => {
