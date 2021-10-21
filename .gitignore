@@ -145,4 +145,4 @@ dist
 .nfs*
 
 data/**
-config.json
+config.toml
