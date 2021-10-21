@@ -24,6 +24,7 @@
     "express-ws": "^5.0.2",
     "timeago.js": "^4.0.2",
     "toml": "^3.0.0",
+    "winston": "^3.3.3",
     "ws": "^8.2.3"
   },
   "optionalDependencies": {

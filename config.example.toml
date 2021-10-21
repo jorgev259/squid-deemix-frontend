@@ -7,6 +7,9 @@ port = 4500
 # location of the zip utility binary
 zipBinaryLocation = "zip"
 zipArguments = "-0rD"
+# whether the server is running through a reverse proxy or not (nginx, etc)
+# thisll make it use x-forwarded-for and express's 'trust proxy'
+proxy = false
 
 [limits]
 # the max amount of search results to send to the client

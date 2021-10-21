@@ -7,17 +7,50 @@ const fs = require('fs');
 const { exec } = require('child_process');
 const timeago = require('timeago.js');
 const toml = require('toml');
+const winston = require('winston');
+
+const logFormatter = winston.format.printf(({ level, message, timestamp }) => {
+  return `${new Date(timestamp).toLocaleDateString('en-GB', {timeZone: 'UTC'})} ${new Date(timestamp).toLocaleTimeString('en-GB', {timeZone: 'UTC'})} ${level.replace('info', 'I').replace('warn', '!').replace('error', '!!')}: ${message}`;
+});
+
+winston.addColors({
+  error: 'red',
+  debug: 'blue',
+  warn: 'yellow',
+  http: 'gray',
+  info: 'blue',
+  verbose: 'cyan',
+  silly: 'magenta'
+});
+
+const logger = winston.createLogger({
+	level: 'debug',
+	format: winston.format.combine(
+		winston.format.simple()
+	),
+	transports: [
+		new winston.transports.File({filename: 'deemix-web-fe-error.log', level: 'error'}),
+		new winston.transports.File({filename: 'deemix-web-fe.log'}),
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.colorize(),
+        logFormatter
+      )
+    })
+	]
+});
 
 if (!fs.existsSync('./config.toml')) {
   if (!fs.existsSync('./config.example.toml')) {
-    console.error('!! no config.toml OR config.example.toml found!!! what the hell are you up to!!!');
+    logger.error('no config.toml OR config.example.toml found!!! what the hell are you up to!!!');
     process.exit(1);
   }
-  console.log('! copying config.example.toml to config.toml as it was not found. the default config may not be preferable!');
+  logger.warn('copying config.example.toml to config.toml as it was not found. the default config may not be preferable!');
   fs.copyFileSync('./config.example.toml', './config.toml');
 }
 const config = toml.parse(fs.readFileSync('./config.toml'));
-console.log('loaded config');
+logger.info('loaded config');
 
 const port = config.server.port || 4500;
 const deleteTimer = config.timer.deleteTimer || 1000 * 60 * 25;
@@ -33,18 +66,19 @@ let deemixSettings = deemix.settings.DEFAULTS
 deemixSettings.downloadLocation = path.join(process.cwd(), 'data/');
 deemixSettings.overwriteFile = deemix.settings.OverwriteOption.ONLY_TAGS;
 
-deemixSettings.maxBitrate = String(deezer.TrackFormats[config.deemix.trackFormat || 'FLAC']);
-deemixSettings.tracknameTemplate = config.deemix.trackNameTemplate || '%artist% - %title%';
-deemixSettings.albumTracknameTemplate = config.deemix.albumTrackNameTemplate || '%tracknumber%. %artist% - %title%';
-deemixSettings.albumNameTemplate = config.deemix.albumNameTemplate || '%artist% - %album%'
-deemixSettings.createM3U8File = config.deemix.createM3U8File !== undefined ? config.deemix.createM3U8File : false;
-deemixSettings.embeddedArtworkPNG = config.deemix.embeddedArtworkPNG !== undefined ? config.deemix.embeddedArtworkPNG : true;
-deemixSettings.embeddedArtworkSize = config.deemix.embeddedArtworkSize || 800;
-deemixSettings.saveArtwork = config.deemix.saveArtwork !== undefined ? config.deemix.saveArtwork : true;
-deemixSettings.localArtworkSize = deemixSettings.localArtworkSize || 1200;
-deemixSettings.localArtworkFormat = deemixSettings.localArtworkFormat || 'jpg';
-deemixSettings.jpegImageQuality = deemixSettings.jpegImageQuality || 80;
-deemixSettings.removeDuplicateArtists = config.deemix.removeDuplicateArtists !== undefined ? config.deemix.removeDuplicateArtists : true;
+const format = deezer.TrackFormats[config.deemix.trackFormat || 'FLAC'];
+deemixSettings.maxBitrate = String(format);
+deemixSettings.tracknameTemplate = config.deemix.trackNameTemplate || deemixSettings.tracknameTemplate;
+deemixSettings.albumTracknameTemplate = config.deemix.albumTrackNameTemplate || deemixSettings.albumTracknameTemplate;
+deemixSettings.albumNameTemplate = config.deemix.albumNameTemplate || deemixSettings.createM3U8File;
+deemixSettings.createM3U8File = config.deemix.createM3U8File !== undefined ? config.deemix.createM3U8File : deemixSettings.createM3U8File;
+deemixSettings.embeddedArtworkPNG = config.deemix.embeddedArtworkPNG !== undefined ? config.deemix.embeddedArtworkPNG : deemixSettings.embeddedArtworkPNG;
+deemixSettings.embeddedArtworkSize = config.deemix.embeddedArtworkSize || deemixSettings.embeddedArtworkSize;
+deemixSettings.saveArtwork = config.deemix.saveArtwork !== undefined ? config.deemix.saveArtwork : deemixSettings.saveArtwork;
+deemixSettings.localArtworkSize = deemixSettings.localArtworkSize || deemixSettings.localArtworkSize;
+deemixSettings.localArtworkFormat = deemixSettings.localArtworkFormat || deemixSettings.localArtworkFormat;
+deemixSettings.jpegImageQuality = deemixSettings.jpegImageQuality || deemixSettings.jpegImageQuality;
+deemixSettings.removeDuplicateArtists = config.deemix.removeDuplicateArtists !== undefined ? config.deemix.removeDuplicateArtists : deemixSettings.removeDuplicateArtists;
 
 const toDeleteLocation = './data/toDelete.json';
 
@@ -56,7 +90,7 @@ function updateQueueFile() {
 }
 
 function queueDeletion(file) {
-  console.log(`queued deletion of ${file} ${timeago.format(Date.now() + deleteTimer)}`);
+  logger.info(`queued deletion of ${file} ${timeago.format(Date.now() + deleteTimer)}`);
 
   toDelete.push({
     date: Date.now() + deleteTimer,
@@ -65,37 +99,38 @@ function queueDeletion(file) {
   setTimeout(() => {
     toDelete = toDelete.filter(c => c.file !== file);
     updateQueueFile();
-    console.log(`deleting queued file ${file}`);
+    logger.info(`deleting queued file ${file}`);
     try {
       fs.unlinkSync(file);
     } catch(err) {
-      console.log(`failed to delete ${file}! is the file already gone?`);
+      logger.warn(`failed to delete ${file}! is the file already gone?`);
     }
   }, deleteTimer);
   updateQueueFile();
 }
 
-console.log(`loaded ${toDelete.length} items in deletion queue`);
+logger.info(`loaded ${toDelete.length} items in deletion queue`);
 let updateQueue = false;
 for (let del of toDelete) {
   if (Date.now() - del.date >= 0) {
     toDelete = toDelete.filter(c => c.file !== del.file);
-    console.log(`deleting ${del.file} - was meant to be deleted ${timeago.format(del.date)}`);
+    logger.warn(`deleting ${del.file} - was meant to be deleted ${timeago.format(del.date)}`);
     updateQueue = true;
     try {
       fs.unlinkSync(del.file);
     } catch(err) {
-      console.log(`failed to delete ${del.file}! is the file already gone?`);
+      logger.warn(`failed to delete ${del.file}! is the file already gone?`);
     }
   } else {
-    console.log(`queueing deletion of ${del.file} ${timeago.format(del.date)}`);
+    logger.info(`queueing deletion of ${del.file} ${timeago.format(del.date)}`);
     setTimeout(() => {
       toDelete = toDelete.filter(c => c.file !== del.file);
       updateQueueFile();
+      logger.info(`deleting queued file ${del.file}`);
       try {
         fs.unlinkSync(del.file);
       } catch(err) {
-        console.log(`failed to delete ${del.file}! is the file already gone?`);
+        logger.warn(`failed to delete ${del.file}! is the file already gone?`);
       }
     }, del.date - Date.now());
   }
@@ -103,11 +138,22 @@ for (let del of toDelete) {
 
 if (updateQueue) {
   updateQueueFile();
-  console.log('updated deletion queue json');
+  logger.info('updated deletion queue json');
 }
+
+if (config.server.proxy) {
+  app.enable('trust proxy');
+  logger.info('enabled express.js reverse proxy settings');
+}
+
+app.use((req, res, next) => {
+  logger.http(`${(config.server.proxy && req.headers['x-forwarded-for']) || req.connection.remoteAddress} ${req.method} ${req.originalUrl} `);
+  next();
+});
 
 app.use(express.static('public'));
 app.use('/data', express.static('data', {extensions:  ['flac', 'mp3']}));
+
 app.get('/api/search', async (req, res) => {
   if (!req.query.search) return res.sendStatus(400);
 
@@ -182,7 +228,7 @@ app.ws('/api/album', async (ws, req) => {
   listener.send('coverArt', album.cover_medium);
   listener.send('metadata', {id: album.id, title: album.title, artist: album.artist.name});
 
-  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, deemixSettings.maxBitrate);
+  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, format);
   deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
 
   await deemixDownloader.start();
@@ -232,7 +278,7 @@ app.ws('/api/track', async (ws, req) => {
   listener.send('coverArt', track.album.cover_medium);
   listener.send('metadata', {id: track.id, title: track.title, artist: track.artist.name});
 
-  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, deemixSettings.maxBitrate);
+  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, format);
   deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
 
   await deemixDownloader.start();
@@ -241,8 +287,8 @@ app.ws('/api/track', async (ws, req) => {
 });
 
 deezerInstance.login_via_arl(process.env.DEEZER_ARL).then(() => {
-  console.log('logged into deezer');
+  logger.info('logged into deezer');
   app.listen(port, () => {
-    console.log('hosting on ' + port);
+    logger.info(`hosting on http://localhost:${port} and wss://localhost:${port}`);
   });
 });
