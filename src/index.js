@@ -33,7 +33,7 @@ let deemixSettings = deemix.settings.DEFAULTS
 deemixSettings.downloadLocation = path.join(process.cwd(), 'data/');
 deemixSettings.overwriteFile = deemix.settings.OverwriteOption.ONLY_TAGS;
 
-deemixSettings.maxBitrate = String(deezer.TrackFormats[config.deemix.trackFormat]);
+deemixSettings.maxBitrate = String(deezer.TrackFormats[config.deemix.trackFormat || 'FLAC']);
 deemixSettings.tracknameTemplate = config.deemix.trackNameTemplate || '%artist% - %title%';
 deemixSettings.albumTracknameTemplate = config.deemix.albumTrackNameTemplate || '%tracknumber%. %artist% - %title%';
 deemixSettings.albumNameTemplate = config.deemix.albumNameTemplate || '%artist% - %album%'
@@ -182,7 +182,7 @@ app.ws('/api/album', async (ws, req) => {
   listener.send('coverArt', album.cover_medium);
   listener.send('metadata', {id: album.id, title: album.title, artist: album.artist.name});
 
-  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, deezer.TrackFormats.FLAC);
+  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, deemixSettings.maxBitrate);
   deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
 
   await deemixDownloader.start();
@@ -232,7 +232,7 @@ app.ws('/api/track', async (ws, req) => {
   listener.send('coverArt', track.album.cover_medium);
   listener.send('metadata', {id: track.id, title: track.title, artist: track.artist.name});
 
-  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, deezer.TrackFormats.FLAC);
+  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, deemixSettings.maxBitrate);
   deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
 
   await deemixDownloader.start();
