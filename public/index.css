@@ -5,6 +5,7 @@
   body {
     background-color: #0a0a0f;
     color: #fff;
+    accent-color: rgb(131, 131, 243);
   }
   input {
     background-color: #112;
@@ -94,6 +95,7 @@
   body {
     background-color: #f0f0f0;
     color: #1e1e2d;
+    accent-color: #ea74ac;
   }
   input {
     background-color: #ffffff;
