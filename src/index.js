@@ -52,6 +52,10 @@ if (!fs.existsSync('./config.toml')) {
 const config = toml.parse(fs.readFileSync('./config.toml'));
 logger.info('loaded config');
 
+let searchcache = {};
+let albumcache = {};
+let trackcache = {};
+
 const port = config.server.port || 4500;
 const deleteTimer = config.timer.deleteTimer || 1000 * 60 * 25;
 
@@ -157,9 +161,10 @@ app.use('/data', express.static('data', {extensions:  ['flac', 'mp3']}));
 app.get('/api/search', async (req, res) => {
   if (!req.query.search) return res.sendStatus(400);
 
-  let s = await deezerInstance.api.search_album(req.query.search, {
+  let s = searchcache[req.query.search] || (await deezerInstance.api.search_album(req.query.search, {
     limit: config.limits.searchLimit || 15,
-  });
+  }));
+  if (!searchcache[req.query.search]) searchcache[req.query.search] = s;
 
   let format = s.data.map(s => {
     return {
@@ -180,7 +185,8 @@ app.get('/api/album', async (req, res) => {
   if (!req.query.id) return req.sendStatus(400);
   let album;
   try {
-    album = await deezerInstance.api.get_album(req.query.id);
+    album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
+    if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
   } catch (err) {
     return req.status(404).send('Album not found!');
   }
@@ -220,7 +226,8 @@ app.ws('/api/album', async (ws, req) => {
 
   let album;
   try {
-    album = await deezerInstance.api.get_album(req.query.id);
+    album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
+    if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
   } catch(err) {
     return ws.close(1012, 'Album not found');
   }
@@ -270,7 +277,8 @@ app.ws('/api/track', async (ws, req) => {
 
   let track;
   try {
-    track = await deezerInstance.api.get_track(req.query.id);
+    track = trackcache[req.query.id] || (await deezerInstance.api.get_track(req.query.id));
+    if (!trackcache[req.query.id]) trackcache[req.query.id] = track;
   } catch(err) {
     return ws.close(1012, 'Track not found');
   }
