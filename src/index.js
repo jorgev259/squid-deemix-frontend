@@ -245,6 +245,7 @@ async function deemixDownloadWrapper(dlObj, ws, coverArt, metadata) {
     await ws.send(JSON.stringify({key: 'zipping'}));
 
     const folderName = trackpaths[0].split('/').slice(-2)[0];
+    logger.debug(`zipping ${folderName}`);
     try {
       await promisify(exec)(`${config.server.zipBinaryLocation} ${config.server.zipArguments} "data/${folderName}.zip" "data/${folderName}"`);
     } catch(err) {
@@ -264,8 +265,10 @@ app.ws('/api/album', async (ws, req) => {
   if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
   const dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, format);
+  let isDone = false;
 
   ws.on('close', (code) => {
+    if (isDone) return;
     dlObj.isCanceled = true;
     logger.debug(`client left unexpectedly with code ${code}; cancelling download`);
   });
@@ -280,6 +283,8 @@ app.ws('/api/album', async (ws, req) => {
   }
 
   await deemixDownloadWrapper(dlObj, ws, album.cover_medium, {id: album.id, title: album.title, artist: album.artist.name});
+  isDone = true;
+  logger.debug('download done');
 
   ws.close(1000);
 });
@@ -288,6 +293,13 @@ app.ws('/api/track', async (ws, req) => {
   if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
   const dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, format);
+  let isDone = false;
+
+  ws.on('close', (code) => {
+    if (isDone) return;
+    dlObj.isCanceled = true;
+    logger.debug(`client left unexpectedly with code ${code}; cancelling download`);
+  });
 
   let track;
   try {
@@ -299,6 +311,8 @@ app.ws('/api/track', async (ws, req) => {
   }
 
   await deemixDownloadWrapper(dlObj, ws, track.album.cover_medium, {id: track.id, title: track.title, artist: track.artist.name});
+  isDone = true;
+  logger.debug('download done');
 
   ws.close(1000);
 });
