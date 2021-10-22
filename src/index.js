@@ -90,7 +90,23 @@ if (!fs.existsSync(toDeleteLocation)) fs.writeFileSync(toDeleteLocation, '[]', {
 let toDelete = JSON.parse(fs.readFileSync(toDeleteLocation, {encoding: 'utf8'}));
 
 function updateQueueFile() {
-  fs.writeFileSync(toDeleteLocation, JSON.stringify(toDelete), {encoding: 'utf8'});
+  try {
+    fs.writeFileSync(toDeleteLocation, JSON.stringify(toDelete), {encoding: 'utf8'});
+  } catch(err) {
+    logger.error('failed to write to deletion queue json file! wrong permissions or ran out of space?', err);
+  }
+}
+
+function deleteQueuedFile(file) {
+  toDelete = toDelete.filter(c => c.file !== file);
+  updateQueueFile();
+  fs.unlink(file, (err) => {
+    if (err) {
+      logger.warn(`failed to delete ${file}!`);
+      logger.warn(err.toString());
+      logger.warn('if this file still exists, you will have to manually delete it');
+    }
+  });
 }
 
 function queueDeletion(file) {
@@ -101,14 +117,8 @@ function queueDeletion(file) {
     file
   });
   setTimeout(() => {
-    toDelete = toDelete.filter(c => c.file !== file);
-    updateQueueFile();
     logger.info(`deleting queued file ${file}`);
-    try {
-      fs.unlinkSync(file);
-    } catch(err) {
-      logger.warn(`failed to delete ${file}! is the file already gone?`);
-    }
+    deleteQueuedFile(file);
   }, deleteTimer);
   updateQueueFile();
 }
@@ -117,25 +127,13 @@ logger.info(`loaded ${toDelete.length} items in deletion queue`);
 let updateQueue = false;
 for (let del of toDelete) {
   if (Date.now() - del.date >= 0) {
-    toDelete = toDelete.filter(c => c.file !== del.file);
     logger.warn(`deleting ${del.file} - was meant to be deleted ${timeago.format(del.date)}`);
-    updateQueue = true;
-    try {
-      fs.unlinkSync(del.file);
-    } catch(err) {
-      logger.warn(`failed to delete ${del.file}! is the file already gone?`);
-    }
+    deleteQueuedFile(del.file);
   } else {
     logger.info(`queueing deletion of ${del.file} ${timeago.format(del.date)}`);
     setTimeout(() => {
-      toDelete = toDelete.filter(c => c.file !== del.file);
-      updateQueueFile();
       logger.info(`deleting queued file ${del.file}`);
-      try {
-        fs.unlinkSync(del.file);
-      } catch(err) {
-        logger.warn(`failed to delete ${del.file}! is the file already gone?`);
-      }
+      deleteQueuedFile(del.file);
     }, del.date - Date.now());
   }
 };
@@ -160,10 +158,15 @@ app.use('/data', express.static('data', {extensions:  ['flac', 'mp3']}));
 
 app.get('/api/search', async (req, res) => {
   if (!req.query.search) return res.sendStatus(400);
-
-  let s = searchcache[req.query.search] || (await deezerInstance.api.search_album(req.query.search, {
-    limit: config.limits.searchLimit || 15,
-  }));
+  let s;
+  try {
+    s = searchcache[req.query.search] || (await deezerInstance.api.search_album(req.query.search, {
+      limit: config.limits.searchLimit || 15,
+    }));
+  } catch(err) {
+    logger.error(err.toString());
+    res.sendStatus(500);
+  }
   if (!searchcache[req.query.search]) searchcache[req.query.search] = s;
 
   let format = s.data.map(s => {
@@ -207,42 +210,38 @@ app.get('/api/album', async (req, res) => {
   });
 });
 
-app.ws('/api/album', async (ws, req) => {
-  if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
-
+async function deemixDownloadWrapper(dlObj, ws, coverArt, metadata) {
   let trackpaths = [];
 
   const listener = {
     send(key, data) {
       if (data.downloaded) {
-        // ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
         trackpaths.push(data.downloadPath);
         queueDeletion(data.downloadPath);
       }
 
-      if (data.state !== 'tagging' && data.state !== 'getAlbumArt' && data.state !== 'getTags') ws.send(JSON.stringify({key, data}));
-      //console.log(`[${key}] ${inspect(data)}`);
+      if (data.state !== 'tagging' && data.state !== 'getAlbumArt' && data.state !== 'getTags' && !dlObj.isCanceled) ws.send(JSON.stringify({key, data}));
     }
   };
 
-  let album;
+  listener.send('coverArt', coverArt);
+  listener.send('metadata', metadata);
+
+  deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
   try {
-    album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
-    if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
+    await deemixDownloader.start();
   } catch(err) {
-    logger.error(err.toString());
-    return ws.close(1012, 'Album not found');
+    logger.warn(err.toString());
+    logger.warn('(this may be deemix just being whiny)');
   }
 
-  listener.send('coverArt', album.cover_medium);
-  listener.send('metadata', {id: album.id, title: album.title, artist: album.artist.name});
-
-  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, format);
-  deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
-
-  await deemixDownloader.start();
-
-  if (trackpaths.length > 1) {
+  if (dlObj.isCanceled) {
+    logger.debug('download gracefully cancelled, cleaning up');
+    trackpaths.forEach((q) => {
+      logger.info(`removing ${q}`);
+      deleteQueuedFile(q);
+    });
+  } else if (trackpaths.length > 1) {
     await ws.send(JSON.stringify({key: 'zipping'}));
 
     const folderName = trackpaths[0].split('/').slice(-2)[0];
@@ -256,9 +255,31 @@ app.ws('/api/album', async (ws, req) => {
     await ws.send(JSON.stringify({key: 'download', data: `data/${folderName}.zip`}));
 
     queueDeletion('./data/' + folderName + '.zip');
-  } else {
+  } else if (trackpaths.length === 1) {
     await ws.send(JSON.stringify({key: 'download', data: trackpaths[0].replace(process.cwd(), '')}));
   }
+}
+
+app.ws('/api/album', async (ws, req) => {
+  if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
+
+  const dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, format);
+
+  ws.on('close', (code) => {
+    dlObj.isCanceled = true;
+    logger.debug(`client left unexpectedly with code ${code}; cancelling download`);
+  });
+
+  let album;
+  try {
+    album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
+    if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
+  } catch(err) {
+    logger.error(err.toString());
+    return ws.close(1012, 'Album not found');
+  }
+
+  await deemixDownloadWrapper(dlObj, ws, album.cover_medium, {id: album.id, title: album.title, artist: album.artist.name});
 
   ws.close(1000);
 });
@@ -266,17 +287,7 @@ app.ws('/api/album', async (ws, req) => {
 app.ws('/api/track', async (ws, req) => {
   if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
-  const listener = {
-    send(key, data) {
-      if (data.downloaded) {
-        ws.send(JSON.stringify({key: 'download', data: data.downloadPath.replace(process.cwd(), '')}));
-        queueDeletion(data.downloadPath);
-      }
-
-      if (data.state !== 'tagging' && data.state !== 'getAlbumArt' && data.state !== 'getTags') ws.send(JSON.stringify({key, data}));
-      //console.log(`[${key}] ${inspect(data)}`);
-    }
-  };
+  const dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, format);
 
   let track;
   try {
@@ -287,13 +298,7 @@ app.ws('/api/track', async (ws, req) => {
     return ws.close(1012, 'Track not found');
   }
 
-  listener.send('coverArt', track.album.cover_medium);
-  listener.send('metadata', {id: track.id, title: track.title, artist: track.artist.name});
-
-  let dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, format);
-  deemixDownloader = new deemix.downloader.Downloader(deezerInstance, dlObj, deemixSettings, listener);
-
-  await deemixDownloader.start();
+  await deemixDownloadWrapper(dlObj, ws, track.album.cover_medium, {id: track.id, title: track.title, artist: track.artist.name});
 
   ws.close(1000);
 });
