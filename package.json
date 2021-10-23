@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "a dumb frontend for just getting some got damned songs",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "quickrun": "tsc && node dist/index.js",

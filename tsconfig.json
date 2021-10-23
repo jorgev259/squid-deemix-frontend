@@ -6,9 +6,9 @@
     "node_modules"
   ],
   "compilerOptions": {
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "node",
+    "incremental": true,
+    "module": "commonjs",
+    "target": "es6",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
