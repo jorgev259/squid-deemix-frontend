@@ -1,13 +1,16 @@
-const express = require('express');
-const deezer = require('deezer-js');
-const deemix = require('deemix');
-const path = require('path');
-const { promisify } = require('util');
-const fs = require('fs');
-const { exec } = require('child_process');
-const timeago = require('timeago.js');
-const toml = require('toml');
-const winston = require('winston');
+import express from 'express';
+import deezer from 'deezer-js';
+import deemix from 'deemix';
+import path from 'path';
+import { promisify } from 'util';
+import fs from 'fs';
+import { exec } from 'child_process';
+import timeago from 'timeago.js';
+import toml from 'toml';
+import winston from 'winston';
+import WebSocket from 'ws';
+import * as dotenv from 'dotenv';
+import expressws from 'express-ws';
 
 const logFormatter = winston.format.printf(({ level, message, timestamp }) => {
   return `${new Date(timestamp).toLocaleDateString('en-GB', {timeZone: 'UTC'})} ${new Date(timestamp).toLocaleTimeString('en-GB', {timeZone: 'UTC'})} ${level.replace('info', 'I').replace('warn', '!').replace('error', '!!')}: ${message}`;
@@ -49,24 +52,24 @@ if (!fs.existsSync('./config.toml')) {
   logger.warn('copying config.example.toml to config.toml as it was not found. the default config may not be preferable!');
   fs.copyFileSync('./config.example.toml', './config.toml');
 }
-const config = toml.parse(fs.readFileSync('./config.toml'));
+const config = toml.parse(fs.readFileSync('./config.toml', {encoding: 'utf8'}));
 logger.info('loaded config');
 
-let searchcache = {};
-let albumcache = {};
-let trackcache = {};
+let searchcache: Record<string, [Album]> = {};
+let albumcache: Record<string, Album> = {};
+let trackcache: Record<string, Track> = {};
 
 const port = config.server.port || 4500;
 const deleteTimer = config.timer.deleteTimer || 1000 * 60 * 25;
 
-require('dotenv').config();
+dotenv.config();
 
-const app = new express();
-const expressWs = require('express-ws')(app);
+const app = express();
+expressws(app);
 const deezerInstance = new deezer.Deezer();
 let deemixDownloader;
 
-let deemixSettings = deemix.settings.DEFAULTS
+let deemixSettings = deemix.settings.DEFAULTS;
 deemixSettings.downloadLocation = path.join(process.cwd(), 'data/');
 deemixSettings.overwriteFile = deemix.settings.OverwriteOption.ONLY_TAGS;
 
@@ -84,10 +87,15 @@ deemixSettings.localArtworkFormat = deemixSettings.localArtworkFormat || deemixS
 deemixSettings.jpegImageQuality = deemixSettings.jpegImageQuality || deemixSettings.jpegImageQuality;
 deemixSettings.removeDuplicateArtists = config.deemix.removeDuplicateArtists !== undefined ? config.deemix.removeDuplicateArtists : deemixSettings.removeDuplicateArtists;
 
+interface QueuedFile {
+  file: string,
+  date: number
+}
+
 const toDeleteLocation = './data/toDelete.json';
 
 if (!fs.existsSync(toDeleteLocation)) fs.writeFileSync(toDeleteLocation, '[]', {encoding: 'utf8'});
-let toDelete = JSON.parse(fs.readFileSync(toDeleteLocation, {encoding: 'utf8'}));
+let toDelete: QueuedFile[] = JSON.parse(fs.readFileSync(toDeleteLocation, {encoding: 'utf8'}));
 
 function updateQueueFile() {
   try {
@@ -97,8 +105,8 @@ function updateQueueFile() {
   }
 }
 
-function deleteQueuedFile(file) {
-  toDelete = toDelete.filter(c => c.file !== file);
+function deleteQueuedFile(file: string) {
+  toDelete = toDelete.filter((c: QueuedFile) => c.file !== file);
   updateQueueFile();
   fs.unlink(file, (err) => {
     if (err) {
@@ -109,7 +117,7 @@ function deleteQueuedFile(file) {
   });
 }
 
-function queueDeletion(file) {
+function queueDeletion(file: string) {
   logger.info(`queued deletion of ${file} ${timeago.format(Date.now() + deleteTimer)}`);
 
   toDelete.push({
@@ -158,18 +166,21 @@ app.use('/data', express.static('data', {extensions:  ['flac', 'mp3']}));
 
 app.get('/api/search', async (req, res) => {
   if (!req.query.search) return res.sendStatus(400);
-  let s;
+  if (Array.isArray(req.query.search)) req.query.search = req.query.search.join('');
+  req.query.search = req.query.search as string;
+
+  let s: [Album];
   try {
     s = searchcache[req.query.search] || (await deezerInstance.api.search_album(req.query.search, {
       limit: config.limits.searchLimit || 15,
-    }));
+    })).data;
   } catch(err) {
-    logger.error(err.toString());
-    res.sendStatus(500);
+    logger.error((err as Error).toString());
+    return res.sendStatus(500);
   }
   if (!searchcache[req.query.search]) searchcache[req.query.search] = s;
 
-  let format = s.data.map(s => {
+  let format = s.map(s => {
     return {
       id: s.id,
       title: s.title,
@@ -185,15 +196,19 @@ app.get('/api/search', async (req, res) => {
 });
 
 app.get('/api/album', async (req, res) => {
-  if (!req.query.id) return req.sendStatus(400);
-  let album;
+  if (!req.query.id) return res.sendStatus(400);
+  if (Array.isArray(req.query.id)) req.query.id = req.query.id.join('');
+  req.query.id = req.query.id as string;
+
+  let album: Album;
   try {
     album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
     if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
   } catch (err) {
-    logger.error(err.toString());
-    return req.status(404).send('Album not found!');
+    logger.error((err as Error).toString());
+    return res.status(404).send('Album not found!');
   }
+
   res.send({
     id: album.id,
     title: album.title,
@@ -210,11 +225,17 @@ app.get('/api/album', async (req, res) => {
   });
 });
 
-async function deemixDownloadWrapper(dlObj, ws, coverArt, metadata) {
-  let trackpaths = [];
+interface Metadata {
+  id: number,
+  title: string,
+  artist: string,
+}
+
+async function deemixDownloadWrapper(dlObj: deemix.types.downloadObjects.IDownloadObject, ws: WebSocket, coverArt: string, metadata: Metadata) {
+  let trackpaths: string[] = [];
 
   const listener = {
-    send(key, data) {
+    send(key: any, data: any) {
       if (data.downloaded) {
         trackpaths.push(data.downloadPath);
         queueDeletion(data.downloadPath);
@@ -231,7 +252,7 @@ async function deemixDownloadWrapper(dlObj, ws, coverArt, metadata) {
   try {
     await deemixDownloader.start();
   } catch(err) {
-    logger.warn(err.toString());
+    logger.warn((err as Error).toString());
     logger.warn('(this may be deemix just being whiny)');
   }
 
@@ -249,7 +270,7 @@ async function deemixDownloadWrapper(dlObj, ws, coverArt, metadata) {
     try {
       await promisify(exec)(`${config.server.zipBinaryLocation} ${config.server.zipArguments} "data/${folderName}.zip" "data/${folderName}"`);
     } catch(err) {
-      logger.error(err.toString());
+      logger.error((err as Error).toString());
       return ws.close(1011, 'Zipping album failed');
     }
 
@@ -261,7 +282,7 @@ async function deemixDownloadWrapper(dlObj, ws, coverArt, metadata) {
   }
 }
 
-app.ws('/api/album', async (ws, req) => {
+app.ws('/api/album', async (ws, req: any) => {
   if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
   const dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/album/' + req.query.id, format);
@@ -278,7 +299,7 @@ app.ws('/api/album', async (ws, req) => {
     album = albumcache[req.query.id] || (await deezerInstance.api.get_album(req.query.id));
     if (!albumcache[req.query.id]) albumcache[req.query.id] = album;
   } catch(err) {
-    logger.error(err.toString());
+    logger.error((err as Error).toString());
     return ws.close(1012, 'Album not found');
   }
 
@@ -289,13 +310,13 @@ app.ws('/api/album', async (ws, req) => {
   ws.close(1000);
 });
 
-app.ws('/api/track', async (ws, req) => {
+app.ws('/api/track', async (ws, req: any) => {
   if (!req.query.id) return ws.close(1008, 'Supply a track ID in the query!');
 
   const dlObj = await deemix.generateDownloadObject(deezerInstance, 'https://www.deezer.com/track/' + req.query.id, format);
   let isDone = false;
 
-  ws.on('close', (code) => {
+  ws.on('close', (code: number) => {
     if (isDone) return;
     dlObj.isCanceled = true;
     logger.debug(`client left unexpectedly with code ${code}; cancelling download`);
@@ -306,7 +327,7 @@ app.ws('/api/track', async (ws, req) => {
     track = trackcache[req.query.id] || (await deezerInstance.api.get_track(req.query.id));
     if (!trackcache[req.query.id]) trackcache[req.query.id] = track;
   } catch(err) {
-    logger.error(err.toString());
+    logger.error((err as Error).toString());
     return ws.close(1012, 'Track not found');
   }
 
@@ -317,7 +338,7 @@ app.ws('/api/track', async (ws, req) => {
   ws.close(1000);
 });
 
-deezerInstance.login_via_arl(process.env.DEEZER_ARL).then(() => {
+deezerInstance.login_via_arl(process.env.DEEZER_ARL || '').then(() => {
   logger.info('logged into deezer');
   app.listen(port, () => {
     logger.info(`hosting on http://localhost:${port} and wss://localhost:${port}`);

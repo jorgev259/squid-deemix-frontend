@@ -2,9 +2,12 @@
   "name": "deemix-web-frontend",
   "version": "1.0.0",
   "description": "a dumb frontend for just getting some got damned songs",
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "quickrun": "tsc && node dist/index.js",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -30,5 +33,11 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.5",
     "utf-8-validate": "^5.0.7"
+  },
+  "devDependencies": {
+    "typescript": "^4.4.4",
+    "@types/express": "^4.17.13",
+    "@types/express-ws": "^3.0.1",
+    "@types/ws": "^8.2.0"
   }
 }
