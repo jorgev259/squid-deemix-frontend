@@ -19,7 +19,7 @@
   "author": "oatmealine",
   "license": "AGPL-3.0",
   "dependencies": {
-    "deemix": "git+https://git.freezer.life/RemixDev/deemix-js",
+    "deemix": "git+https://git.freezerapp.xyz/RemixDev/deemix-js",
     "deezer-js": "^1.2.4",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",

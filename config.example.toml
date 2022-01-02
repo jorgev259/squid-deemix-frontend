@@ -18,7 +18,9 @@ searchLimit = 15
 [deemix]
 # the format of the song to download
 # can be "FLAC", "MP3_320", "MP3_128" or "DEFAULT"
-trackFormat = "FLAC"
+# NOTE: if you set it to a format your account doesnt support, things will just.. silently break
+# sorry
+trackFormat = "MP3_128"
 # templates for the folder and file names
 trackNameTemplate = "%artist% - %title%"
 albumTrackNameTemplate = "%tracknumber%. %artist% - %title%"
