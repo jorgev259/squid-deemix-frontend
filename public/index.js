@@ -210,7 +210,7 @@ window.onload = () => {
             <br>
             <span class="small">by ${d.artist.name}</span>
           </span>
-          <img class="album-download" width="48" height="48" src="assets/download.svg">
+          <img class="album-download" onclick="clearError(); startDownload(${d.id}, true)" width="48" height="48" src="assets/download.svg">
         </div>
         <div class="album-image-wrapper">
           <img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/${d.cover}/128x128-000000-80-0-0.jpg">
@@ -224,13 +224,6 @@ window.onload = () => {
     if (d.data.length === 0) return document.getElementById('albums').innerHTML = '<span class="small">Not found!</span>';
 
     for (c of document.getElementById('albums').children) {
-      if (c.children[0] && c.children[0].children[1]) {
-        let id = c.id.split('-')[1];
-        c.children[0].children[1].onclick = () => {
-          clearError();
-          startDownload(id, true);
-        }
-      }
       let id = c.id.split('-')[1];
       if (document.getElementById('album-bottom-' + id)) {
         document.getElementById('album-bottom-' + id).innerHTML = '<div class="lds-ring"><div></div><div></div><div></div><div></div></div>';
@@ -248,7 +241,7 @@ window.onload = () => {
           <div class="track" id="track-${d.id}">
             <span>${d.artist} - ${d.title}</span>
             <span>
-              <span class="track-download-wrapper">
+              <span class="track-download-wrapper" onclick="clearError(); startDownload(${d.id}, false)">
                 <img class="album-download" width="32" height="32" src="assets/download.svg">
               </span>
                ${formatTime(d.duration)}
@@ -256,13 +249,6 @@ window.onload = () => {
           </div>
           `
         ).join('');
-        for (track of document.getElementById('album-bottom-' + id).children) {
-          let trackId = track.id.split('-')[1];
-          track.children[1].children[0].onclick = () => {
-            clearError();
-            startDownload(trackId, false);
-          }
-        }
       }
     }
   }
