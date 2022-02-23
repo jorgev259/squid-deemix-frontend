@@ -24,6 +24,7 @@ if (config.server.proxy) {
 
 app.use((req, res, next) => {
   logger.http(`${(config.server.proxy && req.headers['x-forwarded-for']) || req.connection.remoteAddress} ${req.method} ${req.originalUrl} `);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   next();
 });
 

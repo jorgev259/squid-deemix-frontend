@@ -1,0 +1,163 @@
+@media (prefers-color-scheme: dark) {
+  .lds-ring div {
+    border: 8px solid #fff;
+    border-color: #fff transparent transparent transparent;
+  }
+  #progress-bar {
+    background-color: #161627;
+  }
+  #progress-bar-inner {
+    background-color: rgb(131, 131, 243);
+  }
+  .slider {
+    background-color: rgb(131, 131, 243);
+  }
+  .slider:hover {
+    filter: drop-shadow( 0px 0px 5px #8383F3);
+  }
+  #progress-state {
+    background-color: #0a0a0f;
+  }
+}
+@media (prefers-color-scheme: light) {
+  #progress-bar {
+    background-color: #fafafa;
+  }
+  #progress-bar-inner {
+    background-color: #ea74ac;
+  }
+  .slider {
+    background-color: #ea74ac;
+  }
+  .slider:hover {
+    filter: drop-shadow( 0px 0px 5px #ea74ac);
+  }
+  #git {
+    filter: invert(100%);
+  }
+  #progress-state {
+    background-color: #fafafa;
+  }
+}
+
+#progress {
+  width: 600px;
+  max-width: 98%;
+}
+
+#progress-bar {
+  border-radius: 10px;
+  width: 100%;
+  height: 12px;
+}
+#progress-bar-inner {
+  border-radius: 10px;
+}
+
+
+#header {
+  display: flex;
+  align-items: left;
+  justify-content: left;
+  flex-direction: row;
+}
+#header > * {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+#header .link {
+  font-size: x-large;
+  text-decoration: none;
+}
+#header img {
+  position: relative;
+  top: 5px;
+}
+
+ /* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-transition: .2s;
+  transition: .2s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .2s;
+  transition: .2s;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#header-left {
+  width: 100%;
+}
+#header-left > * {
+  margin-right: 16px;
+}
+
+#progress-state {
+  font-family: monospace;
+  font-size: 12px;
+  border-radius: 10px;
+  width: 80%;
+  padding: 6px;
+  height: 110px;
+}
+
+.album-downloading {
+  border-radius: 10px;
+}
+
+.error {
+  background-color: rgb(255, 155, 155, 0.3);
+  padding: 20px;
+  border-radius: 15px;
+  border: 3px solid rgb(255, 155, 155, 0.8);
+  text-align: center;
+  margin: 15px;
+  width: 400px;
+  display: none; /* this is changed by the js */
+}
+.error .big {
+  font-size: x-large;
+}
