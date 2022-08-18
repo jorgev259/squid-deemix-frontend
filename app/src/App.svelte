@@ -4,10 +4,11 @@
   import Loading from './lib/Loading.svelte';
   import Search from './lib/Search.svelte';
   import ThemeSwitcher from './lib/ThemeSwitcher.svelte';
-  import { queue } from './lib/stores';
+  import { queue, saveOnDownload } from './lib/stores';
   import { get } from 'svelte/store';
   import { dev } from './lib/dev';
   import ProgressBar from './lib/ProgressBar.svelte';
+  import { SvelteToast } from '@zerodevx/svelte-toast'
 
   let loading = false;
 
@@ -33,6 +34,12 @@
   let searchAlbums = [];
 </script>
 
+<SvelteToast options={{
+  theme: {
+    '--toastBorderRadius': '0.75em',
+    '--toastBackground': 'rgba(19, 19, 19, 0.7)'
+  }
+}}/>
 <app>
   <main>
     <span class="main">
@@ -60,6 +67,9 @@
         </div>
       {/each}
     </div>
+    <form class="options">
+      <input type="checkbox" id="auto-save" bind:checked={$saveOnDownload}/><label for="auto-save">Save songs on download <span class="small">(Doesn't work on all browsers)</span></label>
+    </form>
   </sidebar>
 </app>
 
@@ -76,6 +86,7 @@
   }
   main {
     flex: 1 1 0px;
+    min-height: 100vh;
   }
 
   sidebar {
@@ -124,6 +135,10 @@
     display: flex;
     flex-direction: column;
     gap: 1em;
+    max-width: 380px;
+  }
+  .options {
+    padding-top: 1em;
   }
 
   @media (prefers-color-scheme: dark) {

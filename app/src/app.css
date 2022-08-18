@@ -48,6 +48,7 @@ body {
 
 .small {
   font-size: medium;
+  font-weight: normal;
 }
 .big {
   font-weight: bold;

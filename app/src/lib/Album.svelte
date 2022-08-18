@@ -47,12 +47,13 @@
   <div class="album-inner-top">
     <div class="album-metadata">
       <span class="metadata">
-        <span class="big">{title}</span>
-        {#if subtitle}
-          <span class="small">{subtitle}</span>
-        {/if}
-        <br>
-        <span class="small">{artist.name}</span>
+        <div class="big">
+          {title}
+          {#if subtitle}
+            <span class="small">{subtitle}</span>
+          {/if}
+        </div>
+        <div class="small">{artist.name}</div>
       </span>
       {#if !hideDownload || $butShowThisDownloadLinkInstead}
         {#if $butShowThisDownloadLinkInstead}
@@ -131,6 +132,7 @@
     height: 96px;
   }
   .album-image-wrapper {
+    flex: 0 0 auto;
     transition: 0.1s border ease-out;
   }
   .album-metadata {
@@ -139,6 +141,9 @@
     flex: 1 1 0px;
     align-items: flex-start;
     gap: 0.5em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
   }
   .album-download {
     cursor: pointer;
@@ -159,6 +164,9 @@
 
   .metadata {
     flex: 1 1 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .progress-state {

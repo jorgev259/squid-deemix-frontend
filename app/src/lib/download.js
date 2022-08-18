@@ -1,6 +1,11 @@
 import { get, writable } from 'svelte/store';
-import { queue } from './stores';
+import { queue, saveOnDownload } from './stores';
 import { dev } from './dev';
+import { toast } from '@zerodevx/svelte-toast'
+import { saveAs } from 'file-saver';
+
+const successTheme = {'--toastBarBackground': 'rgb(131, 243, 131)'};
+const failureTheme = {'--toastBarBackground': 'rgb(243, 131, 131)'};
 
 function getWebsocketLocation() {
   if (dev) return 'ws://localhost:4500/';
@@ -24,13 +29,15 @@ export function startDownload(id, metadata, isAlbum) {
     downloadLink
   };
 
+  toast.push(`Started download for <b>${metadata.artist.name} - ${metadata.title}</b>`);
+
   queue.set([...get(queue), queueItem]);
 
   let type = isAlbum ? 'album' : 'track'
   const ws = new WebSocket(`${getWebsocketLocation()}api/${type}?id=${id}`);
   ws.onmessage = (m) => {
     const d = JSON.parse(m.data);
-    console.log(d);
+    //console.log(d);
     if (d.key === 'downloadInfo') {
       logLocal.push(`[${d.data.data.title}] ${d.data.state}`);
       log.set(logLocal);
@@ -42,10 +49,15 @@ export function startDownload(id, metadata, isAlbum) {
       success.set(true);
       progress.set(100);
       downloadLink.set(d.data);
+      toast.push(`Downloaded <b>${metadata.artist.name} - ${metadata.title}</b>!`, {theme: successTheme});
+      if (get(saveOnDownload)) {
+        saveAs(d.data, d.data.split('/').pop());
+      }
     } else if (d.key === 'finishDownload') {
       setTimeout(() => {
         if (!get(success)) {
           success.set(false);
+          toast.push(`Downloading <b>${metadata.artist.name} - ${metadata.title}</b> failed!`, {theme: failureTheme});
           logLocal.push('Server didn\'t send a download link back!');
           logLocal.push('This may be due to errors during the download or temporary connection issues');
           logLocal.push('Try again, and if it still doesn\'t work, annoy oat until it does again');
@@ -67,6 +79,7 @@ export function startDownload(id, metadata, isAlbum) {
     logLocal.push(`${e}`);
     log.set(logLocal);
     success.set(false);
+    toast.push(`Downloading <b>${metadata.artist.name} - ${metadata.title}</b> failed!`, {theme: failureTheme});
   }
   ws.onclose = (e) => {
     if (e.code !== 1000) {
@@ -74,6 +87,7 @@ export function startDownload(id, metadata, isAlbum) {
       logLocal.push(`websocket closed unexpectedly with code ${e.code}`, `${e.reason}`);
       log.set(logLocal);
       success.set(false);
+      toast.push(`Downloading <b>${metadata.artist.name} - ${metadata.title}</b> failed!`, {theme: failureTheme});
     }
   }
 }

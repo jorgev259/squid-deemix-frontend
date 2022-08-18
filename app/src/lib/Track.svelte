@@ -51,7 +51,6 @@
 
   .track-left {
     flex: 1 1 0px;
-    white-space: normal;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
