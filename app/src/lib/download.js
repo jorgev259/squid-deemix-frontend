@@ -51,6 +51,11 @@ export function startDownload(id, metadata, isAlbum) {
       log.set(logLocal);
     }
   }
+  ws.onopen = () => {
+    logLocal.push('WebSocket connected!');
+    logLocal.push('Server shooould start downloading the files now');
+    log.set(logLocal);
+  }
   ws.onerror = (e) => {
     console.error(e);
     logLocal.push(`${e}`);
