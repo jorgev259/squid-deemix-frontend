@@ -49,7 +49,7 @@ export async function deemixDownloadWrapper(dlObj: deemix.types.downloadObjects.
     const folderName = trackpaths[0].split('/').slice(-2)[0];
     logger.debug(`zipping ${folderName}`);
     try {
-      await promisify(exec)(`${config.server.zipBinaryLocation} ${config.server.zipArguments} "data/${folderName}.zip" "data/${folderName}"`);
+      await promisify(exec)(`cd "data/" && "${config.server.zipBinaryLocation}" ${config.server.zipArguments} "${folderName}.zip" "${folderName}"`);
     } catch(err) {
       logger.error((err as Error).toString());
       return ws.close(1011, 'Zipping album failed');
