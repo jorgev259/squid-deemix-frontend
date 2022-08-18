@@ -106,12 +106,11 @@
       top: 0px;
       width: 0px;
       right: 0px;
+      padding: 0em;
     }
     sidebar.open {
       width: 450px;
       right: 8px;
-    }
-    sidebar.open {
       padding: 1em;
     }
   }
