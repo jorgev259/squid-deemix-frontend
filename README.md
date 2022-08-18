@@ -19,12 +19,14 @@ it's intended use is for small groups of people to self-host, and as such there'
 2. (optionally) copy the config.example.json to config.json in the same folder, and modify it
 
 3. `npm install` / `pnpm install`
-
-4. install the `zip` linux tool into your path (there are currently no plans for windows support, however feel free to contribute)
    
-5. build the project with `npm run build` / `pnpm build`
+4. head to `app/`, run `npm install` / `pnpm install` there, followed by `npm run build` / `pnpm run build`
 
-6. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
+5. install the `zip` linux tool into your path (there are currently no plans for windows support, however feel free to contribute)
+   
+6. build the project with `npm run build` / `pnpm build` or just run it with `npm run quickrun` / `pnpm run quickrun`
+
+7. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
 
 ### nginx addenum
 
@@ -55,7 +57,7 @@ location /api {
 }
 
 location / {
-  root /home/oatmealine/deemix-web-frontend/public/;
+  root /home/oatmealine/deemix-web-frontend/app/dist/;
   index index.html;
   try_files $uri $uri/ =404;
 }
