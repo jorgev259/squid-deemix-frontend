@@ -5,6 +5,7 @@
   export let cover;
   export let duration;
   export let album;
+  export let albumArtist;
 
   import { formatTime } from './format';
 
@@ -15,7 +16,13 @@
 </script>
 
 <div class="track" id="track-{id}">
-  <span class="track-left">{artist} - {title}</span>
+  <span class="track-left">
+    {#if artist !== albumArtist}
+      {artist} - {title}
+    {:else}
+      {title}
+    {/if}
+  </span>
   <span class="track-right">
     <span class="small">{formatTime(duration)}</span>
     <span class="track-download" title="Download" on:click={() => startDownload(id, {title, artist: {name: artist}, cover, album}, false)}>
@@ -44,6 +51,10 @@
 
   .track-left {
     flex: 1 1 0px;
+    white-space: normal;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
   }
   .track-right {
     flex: 0 0 auto;

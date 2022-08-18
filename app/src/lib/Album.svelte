@@ -18,6 +18,7 @@
   import Track from './Track.svelte';
 
   import { startDownload } from './download';
+  import { dev } from './dev';
 
   const options = {};
 
@@ -27,7 +28,7 @@
     if (loadingTracks || album || short) return;
     loadingTracks = true;
     try {
-      let url = new URL(`/api/album`, window.location.origin);
+      let url = dev ? (new URL('http://localhost:4500/api/album')) : (new URL('/api/album', window.location.origin));
       url.searchParams.set('id', id);
       const response = await fetch(url);
       album = await response.json();
@@ -43,15 +44,35 @@
   use:inview={options}
   on:enter={loadTracks}
 >
-  <div class="album-metadata">
-    <span class="metadata">
-      <span class="big">{title}</span>
-      {#if subtitle}
-        <span class="small">{subtitle}</span>
+  <div class="album-inner-top">
+    <div class="album-metadata">
+      <span class="metadata">
+        <span class="big">{title}</span>
+        {#if subtitle}
+          <span class="small">{subtitle}</span>
+        {/if}
+        <br>
+        <span class="small">{artist.name}</span>
+      </span>
+      {#if !hideDownload || $butShowThisDownloadLinkInstead}
+        {#if $butShowThisDownloadLinkInstead}
+          <a href={$butShowThisDownloadLinkInstead} target="_blank" rel="noopener" download="{$butShowThisDownloadLinkInstead.split('/').slice(-1)}">
+            <div class="album-download" title="Download">
+              <Icon icon={faDownload}/>
+            </div>
+          </a>
+        {:else}
+          <div class="album-download" title="Download" on:click={() => startDownload(id, {title, artist, cover}, true)}>
+            <Icon icon={faDownload}/>
+          </div>
+        {/if}
       {/if}
-      <br>
-      <span class="small">{artist.name}</span>
-    </span>
+    </div>
+    <div class="album-image-wrapper">
+      <img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/{cover}/128x128-000000-80-0-0.jpg" alt="Cover for '{title}'">
+    </div>
+  </div>
+  <div class="album-inner-bottom">
     {#if log}
       <div class="progress-state">
         {#each $log as line, i}
@@ -59,22 +80,6 @@
         {/each}
       </div>
     {/if}
-    {#if !hideDownload || $butShowThisDownloadLinkInstead}
-      {#if $butShowThisDownloadLinkInstead}
-        <a href={$butShowThisDownloadLinkInstead} target="_blank" rel="noopener" download="{$butShowThisDownloadLinkInstead.split('/').slice(-1)}">
-          <div class="album-download" title="Download">
-            <Icon icon={faDownload}/>
-          </div>
-        </a>
-      {:else}
-        <div class="album-download" title="Download" on:click={() => startDownload(id, {title, artist, cover}, true)}>
-          <Icon icon={faDownload}/>
-        </div>
-      {/if}
-    {/if}
-  </div>
-  <div class="album-image-wrapper">
-    <img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/{cover}/128x128-000000-80-0-0.jpg" alt="Cover for '{title}'">
   </div>
 </div>
 
@@ -84,7 +89,7 @@
   {/if}
   {#if album && !short}
     {#each album.tracks as track}
-      <Track id={track.id} title={track.title} duration={track.duration} artist={track.artist} cover={cover} album={title}/>
+      <Track id={track.id} title={track.title} duration={track.duration} artist={track.artist} cover={cover} album={title} albumArtist={artist.name}/>
     {/each}
   {/if}
 </div>
@@ -97,9 +102,22 @@
     border-radius: 10px 10px 0px 0px;
     transition: 0.1s border-left ease-out, 0.1s background-color ease-in-out;
     min-height: 96px;
+    margin-top: 0.5em;
+    min-width: 330px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5em;
+  }
+  .album-inner-top {
     display: flex;
     justify-content: space-between;
-    margin-top: 0.5em;
+    gap: 0.5em;
+  }
+  .album-inner-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
   }
   .album.short {
     border-radius: 10px 10px 10px 10px;
@@ -147,7 +165,6 @@
     font-family: monospace;
     font-size: 12px;
     border-radius: 10px;
-    width: 80%;
     padding: 6px;
     height: 5.5em;
     overflow: hidden;

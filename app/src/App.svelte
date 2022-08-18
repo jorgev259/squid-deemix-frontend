@@ -6,7 +6,8 @@
   import ThemeSwitcher from './lib/ThemeSwitcher.svelte';
   import { queue } from './lib/stores';
   import { get } from 'svelte/store';
-import ProgressBar from './lib/ProgressBar.svelte';
+  import { dev } from './lib/dev';
+  import ProgressBar from './lib/ProgressBar.svelte';
 
   let loading = false;
 
@@ -17,7 +18,7 @@ import ProgressBar from './lib/ProgressBar.svelte';
     loading = true;
 
     try {
-      let url = new URL('/api/search', window.location.origin);
+      let url = dev ? (new URL('http://localhost:4500/api/search')) : (new URL('/api/search', window.location.origin));
       url.searchParams.set('search', query);
       const response = await fetch(url);
       const data = await response.json();
@@ -37,7 +38,6 @@ import ProgressBar from './lib/ProgressBar.svelte';
     <span class="main">
       <Header/>
       <Search onChange={search}/>
-      <i class="small">ps. sorry for shitty mobile support on rewrite i'll fix it soon i promiseeeee -oat</i>
       {#if loading}
         <Loading/>
       {/if}
@@ -79,21 +79,45 @@ import ProgressBar from './lib/ProgressBar.svelte';
   }
 
   sidebar {
-    width: 0px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    padding: 0em;
-    height: calc(100vh - 2em);
-    overflow: auto;
-    overflow-x: hidden;
-    position: sticky;
-    top: 0px;
-    right: 0px;
-    transition: width 0.2s ease-in-out, padding 0.2s ease-in-out, right 0.2s ease-in-out;
-  }
-  sidebar.open {
-    width: 450px;
     padding: 1em;
-    right: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: width 0.2s ease-in-out, padding 0.2s ease-in-out, right 0.2s ease-in-out, height 0.2s ease-in-out;
+  }
+
+  @media (min-width: 1100px) {
+    sidebar {
+      height: calc(100vh - 2em);
+      overflow: auto;
+      overflow-x: hidden;
+      position: sticky;
+      top: 0px;
+      width: 0px;
+      right: 0px;
+    }
+    sidebar.open {
+      width: 450px;
+      right: 8px;
+    }
+    sidebar.open {
+      padding: 1em;
+    }
+  }
+
+  @media (max-width: 1099px) {
+    app {
+      flex-direction: column;
+    }
+    sidebar {
+      order: -1;
+      align-items: center;
+    }
+    sidebar:not(.open) {
+      height: 0px;
+      padding: 0em;
+      overflow: hidden;
+    }
   }
 
   .queue {

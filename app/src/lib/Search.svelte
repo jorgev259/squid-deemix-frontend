@@ -50,7 +50,7 @@
   input {
     margin: 5px;
     width: 550px;
-    max-width: 98%;
+    max-width: 94%;
     padding: 15px;
     font-size: x-large;
     border: none;

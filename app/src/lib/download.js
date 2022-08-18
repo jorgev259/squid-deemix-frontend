@@ -1,7 +1,9 @@
-import { get, writable } from "svelte/store";
-import { queue } from "./stores";
+import { get, writable } from 'svelte/store';
+import { queue } from './stores';
+import { dev } from './dev';
 
 function getWebsocketLocation() {
+  if (dev) return 'ws://localhost:4500/';
   return window.window.location.toString().replace('https://', 'wss://').replace('http://', 'ws://');
 }
 
@@ -11,10 +13,6 @@ export function startDownload(id, metadata, isAlbum) {
   let progress = writable(0);
   let success = writable(null);
   let downloadLink = writable(null);
-
-  let coverArt;
-  let title;
-  let artist;
 
   let queueItem = {
     id: id,
@@ -38,14 +36,22 @@ export function startDownload(id, metadata, isAlbum) {
       log.set(logLocal);
     } else if (d.key === 'updateQueue') {
       if (d.data.progress) {
-        progress.set(d.data.progress);
+        progress.set(Math.max(d.data.progress, get(progress)));
       }
     } else if (d.key === 'download') {
+      success.set(true);
+      progress.set(100);
       downloadLink.set(d.data);
     } else if (d.key === 'finishDownload') {
-      logLocal.push('Download finished');
-      log.set(logLocal);
-      success.set(true);
+      setTimeout(() => {
+        if (!get(success)) {
+          success.set(false);
+          logLocal.push('Server didn\'t send a download link back!');
+          logLocal.push('This may be due to errors during the download or temporary connection issues');
+          logLocal.push('Try again, and if it still doesn\'t work, annoy oat until it does again');
+          log.set(logLocal);
+        }
+      }, 1000);
     } else if (d.key === 'zipping') {
       logLocal.push('Creating zip archive');
       log.set(logLocal);
@@ -53,7 +59,7 @@ export function startDownload(id, metadata, isAlbum) {
   }
   ws.onopen = () => {
     logLocal.push('WebSocket connected!');
-    logLocal.push('Server shooould start downloading the files now');
+    logLocal.push('Initializing download');
     log.set(logLocal);
   }
   ws.onerror = (e) => {
