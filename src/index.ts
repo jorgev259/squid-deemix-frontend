@@ -22,13 +22,14 @@ if (config.server.proxy) {
   logger.info('enabled express.js reverse proxy settings');
 }
 
+app.use(express.static('app/dist'));
+
 app.use((req, res, next) => {
   logger.http(`${(config.server.proxy && req.headers['x-forwarded-for']) || req.connection.remoteAddress} ${req.method} ${req.originalUrl} `);
   res.setHeader('Access-Control-Allow-Origin', '*');
   next();
 });
 
-app.use(express.static('public'));
 app.use('/data', express.static('data', {extensions:  ['flac', 'mp3']}));
 
 import get from './get';

@@ -1,32 +1,123 @@
 <script>
-	import Search from './Search.svelte';
-	import Album from './Album.svelte';
-	import Download from './Download.svelte';
+  import Album from './lib/Album.svelte';
+  import Header from './lib/Header.svelte';
+  import Loading from './lib/Loading.svelte';
+  import Search from './lib/Search.svelte';
+  import ThemeSwitcher from './lib/ThemeSwitcher.svelte';
+  import { queue } from './lib/stores';
+  import { get } from 'svelte/store';
+import ProgressBar from './lib/ProgressBar.svelte';
 
-	import {albums, display, displays, downloading} from './stores';
+  let loading = false;
+
+  async function search(event) {
+    const query = event.target.value;
+
+    searchAlbums = [];
+    loading = true;
+
+    try {
+      let url = new URL('/api/search', window.location.origin);
+      url.searchParams.set('search', query);
+      const response = await fetch(url);
+      const data = await response.json();
+      loading = false;
+      searchAlbums = data;
+    } catch (error) {
+      console.error(error);
+      loading = false;
+    }
+  }
+
+  let searchAlbums = [];
 </script>
 
-<style>
-	content {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		flex-direction: column;
-	}
-</style>
+<app>
+  <main>
+    <span class="main">
+      <Header/>
+      <Search onChange={search}/>
+      <i class="small">ps. sorry for shitty mobile support on rewrite i'll fix it soon i promiseeeee -oat</i>
+      {#if loading}
+        <Loading/>
+      {/if}
+      {#if searchAlbums.length > 0}
+        <div class="albums">
+          {#each searchAlbums as album, i}
+            <Album title={album.title} id={album.id} cover={album.cover} artist={album.artist}/>
+          {/each}
+        </div>
+      {/if}
+    </span>
+  </main>
+  <sidebar class:open={$queue.length > 0}>
+    <h1>Download Queue</h1>
+    <div class="queue">
+      {#each $queue as dl}
+        <div>
+          <Album log={dl.log} short={true} hideDownload={true} butShowThisDownloadLinkInstead={dl.downloadLink} title={dl.title} artist={dl.artist} cover={dl.cover} id={dl.id} subtitle={!dl.isAlbum && `from ${dl.album}`} />
+          <ProgressBar progress={dl.progress} success={dl.success}/>
+        </div>
+      {/each}
+    </div>
+  </sidebar>
+</app>
 
-<main>
-	<content>
-		{#if $display === displays.AlbumSearch}
-			<Search/>
-			<div id="albums">
-				{#each $albums as album}
-					<Album id={album.id} title={album.title} cover={album.cover} artist={album.artist.name}/><br>
-				{/each}
-			</div>
-		{/if}
-		{#if $display === displays.Download && $downloading}
-			<Download id={$downloading.id} isAlbum={$downloading.isAlbum}/>
-		{/if}
-	</content>
-</main>
+<style>
+  app {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .main {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+  main {
+    flex: 1 1 0px;
+  }
+
+  sidebar {
+    width: 0px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 0em;
+    height: calc(100vh - 2em);
+    overflow: auto;
+    overflow-x: hidden;
+    position: sticky;
+    top: 0px;
+    right: 0px;
+    transition: width 0.2s ease-in-out, padding 0.2s ease-in-out, right 0.2s ease-in-out;
+  }
+  sidebar.open {
+    width: 450px;
+    padding: 1em;
+    right: 8px;
+  }
+
+  .queue {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    sidebar {
+      background-color: #161627;
+    }
+  }
+  @media (prefers-color-scheme: light) {
+    sidebar {
+      background-color: #fafafa;
+    }
+  }
+
+  .albums {
+    margin-top: 20px;
+    width: 600px;
+    max-width: 98%;
+    display: flex;
+    flex-direction: column;
+  }
+</style>
