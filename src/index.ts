@@ -10,7 +10,7 @@ import { deezerInstance } from './deemix';
 
 export const port = config.server.port || 4500;
 
-export let searchcache: Record<string, [Album]> = {};
+export let searchcache: Record<string, DeezerResponse<[Album]>> = {};
 export let albumcache: Record<string, Album> = {};
 export let trackcache: Record<string, Track> = {};
 

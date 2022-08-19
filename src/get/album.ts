@@ -24,13 +24,15 @@ router.get('/api/album', async (req, res) => {
     id: album.id,
     title: album.title,
     link: album.link,
+    releaseDate: album.release_date,
+    explicitCover: album.explicit_content_cover,
     tracks: album.tracks.data.map(t => {
       return {
         id: t.id,
         title: t.title,
         duration: t.duration,
         link: t.link,
-        artist: t.artist.name,
+        artist: t.artist.name
       };
     })
   });

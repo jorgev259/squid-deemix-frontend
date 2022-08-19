@@ -12,19 +12,22 @@ router.get('/api/search', async (req, res) => {
   if (Array.isArray(req.query.search)) req.query.search = req.query.search.join('');
   req.query.search = req.query.search as string;
 
-  let s: [Album];
+  let s: DeezerResponse<[Album]>;
   try {
-    s = searchcache[req.query.search] || (await deezerInstance.api.search_album(req.query.search, {
+    s = searchcache[req.query.search+'/'+req.query.index] || (await deezerInstance.api.search_album(req.query.search, {
       limit: config.limits.searchLimit || 15,
-    })).data;
+      index: parseInt(req.query.index as string) || undefined
+    }));
   } catch(err) {
     logger.error((err as Error).toString());
     return res.sendStatus(500);
   }
-  if (!searchcache[req.query.search]) searchcache[req.query.search] = s;
+  searchcache[req.query.search+'/'+req.query.index] = s;
 
-  let format = s.map(s => {
-    return {
+  let format = {
+    next: s.next && s.next.split('=').pop(), // dumb workaround of having to use regexes because i hate regexes
+    total: s.total,
+    data: s.data.map(s => ({
       id: s.id,
       title: s.title,
       cover: s.md5_image,
@@ -32,8 +35,8 @@ router.get('/api/search', async (req, res) => {
         id: s.artist.id,
         name: s.artist.name
       },
-    };
-  });
+    }))
+  };
 
   res.send(format);
 });

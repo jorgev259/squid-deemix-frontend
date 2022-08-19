@@ -12,8 +12,13 @@
 
   let loading = false;
 
+  let searchAlbums = [];
+  let total;
+  let next;
+  let query;
+
   async function search(event) {
-    const query = event.target.value;
+    query = event.target.value;
 
     searchAlbums = [];
     loading = true;
@@ -24,14 +29,33 @@
       const response = await fetch(url);
       const data = await response.json();
       loading = false;
-      searchAlbums = data;
+      searchAlbums = data.data;
+      total = data.total;
+      next = data.next;
     } catch (error) {
       console.error(error);
       loading = false;
     }
   }
 
-  let searchAlbums = [];
+  async function searchMore() {
+    loading = true;
+
+    try {
+      let url = dev ? (new URL('http://localhost:4500/api/search')) : (new URL('/api/search', window.location.origin));
+      url.searchParams.set('search', query);
+      url.searchParams.set('index', next);
+      const response = await fetch(url);
+      const data = await response.json();
+      loading = false;
+      searchAlbums = [...searchAlbums, ...data.data];
+      total = data.total;
+      next = data.next;
+    } catch (error) {
+      console.error(error);
+      loading = false;
+    }
+  }
 </script>
 
 <SvelteToast options={{
@@ -45,15 +69,21 @@
     <span class="main">
       <Header/>
       <Search onChange={search}/>
-      {#if loading}
-        <Loading/>
-      {/if}
       {#if searchAlbums.length > 0}
         <div class="albums">
           {#each searchAlbums as album, i}
             <Album title={album.title} id={album.id} cover={album.cover} artist={album.artist}/>
           {/each}
         </div>
+
+        {#if total > searchAlbums.length}
+          <div style="padding: 1.5em">
+            <button on:click={searchMore}>Load more</button>
+          </div>
+        {/if}
+      {/if}
+      {#if loading}
+        <Loading/>
       {/if}
     </span>
   </main>
