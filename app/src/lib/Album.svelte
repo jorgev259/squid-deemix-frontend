@@ -55,19 +55,21 @@
         </div>
         <div class="small">{artist.name}</div>
       </span>
-      {#if !hideDownload || $butShowThisDownloadLinkInstead}
-        {#if $butShowThisDownloadLinkInstead}
-          <a href={$butShowThisDownloadLinkInstead} target="_blank" rel="noopener" download="{$butShowThisDownloadLinkInstead.split('/').slice(-1)}">
-            <div class="album-download" title="Download">
+      <div class="album-inner-inner-bottom">
+        {#if !hideDownload || $butShowThisDownloadLinkInstead}
+          {#if $butShowThisDownloadLinkInstead}
+            <a href={$butShowThisDownloadLinkInstead} target="_blank" rel="noopener" download="{$butShowThisDownloadLinkInstead.split('/').slice(-1)}">
+              <div class="album-download" title="Download">
+                <Icon icon={faDownload}/>
+              </div>
+            </a>
+          {:else}
+            <div class="album-download" title="Download" on:click={() => startDownload(id, {title, artist, cover}, true)}>
               <Icon icon={faDownload}/>
             </div>
-          </a>
-        {:else}
-          <div class="album-download" title="Download" on:click={() => startDownload(id, {title, artist, cover}, true)}>
-            <Icon icon={faDownload}/>
-          </div>
+          {/if}
         {/if}
-      {/if}
+      </div>
     </div>
     <div class="album-image-wrapper">
       <img class="album-image" class:explicit={album && album.explicitCover === 1} width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/{cover}/128x128-000000-80-0-0.jpg" alt="Cover for '{title}'">
@@ -90,7 +92,7 @@
   {/if}
   {#if album && !short}
     {#each album.tracks as track}
-      <Track id={track.id} title={track.title} duration={track.duration} artist={track.artist} cover={cover} album={title} albumArtist={artist.name} explicit={track.explicit === 1}/>
+      <Track id={track.id} title={track.title} duration={track.duration} artist={track.contributors.map(a => a && a.name).join(', ')} cover={cover} album={title} albumArtist={artist.name} explicit={track.explicit === 1}/>
     {/each}
   {/if}
 </div>
@@ -113,12 +115,19 @@
   .album-inner-top {
     display: flex;
     justify-content: space-between;
-    gap: 0.5em;
+    gap: 1em;
   }
   .album-inner-bottom {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+  }
+  .album-inner-inner-bottom {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    align-items: flex-end;
   }
   .album.short {
     border-radius: 10px 10px 10px 10px;
@@ -222,10 +231,6 @@
     .album:hover .album-image-wrapper {
       border: 0px solid rgba(0, 0, 0, 0);
     }
-    .album-bottom {
-      background-color: #112;
-      border-left: 0rem solid rgb(131, 131, 243);
-    }
     .progress-state {
       background-color: #0a0a0f;
     }
@@ -262,10 +267,6 @@
     }
     .album:hover .album-image-wrapper {
       border: 0px solid rgba(0, 0, 0, 0);
-    }
-    .album-bottom {
-      background-color: #ffffff;
-      border-left: 0rem solid #ea74ac;
     }
     .progress-state {
       background-color: #fafafa;

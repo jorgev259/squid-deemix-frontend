@@ -26,16 +26,18 @@ router.get('/api/album', async (req, res) => {
     link: album.link,
     releaseDate: album.release_date,
     explicitCover: album.explicit_content_cover,
-    tracks: album.tracks.data.map(t => {
+    tracks: await Promise.all(album.tracks.data.map(async ({id}) => {
+      const t = await deezerInstance.api.get_track(id);
       return {
         id: t.id,
         title: t.title,
         duration: t.duration,
         link: t.link,
         artist: t.artist.name,
-        explicit: t.explicit_content_lyrics
+        explicit: t.explicit_content_lyrics,
+        contributors: t.contributors
       };
-    })
+    }))
   });
 });
 

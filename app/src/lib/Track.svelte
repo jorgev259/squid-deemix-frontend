@@ -47,17 +47,15 @@
     align-items: center;
     font-size: large;
     transition: 0.05s background-color ease-out, 0.1s border-left ease-out;
+    margin-bottom: 3px;
   }
   .track:nth-last-child(1) {
-    border-bottom: none;
     border-radius: 0px 0px 15px 15px;
   }
 
   .track-left {
     flex: 1 1 0px;
-    text-overflow: ellipsis;
     overflow: hidden;
-    white-space: nowrap;
   }
   .track-right {
     flex: 0 0 auto;
@@ -91,7 +89,6 @@
       filter: drop-shadow( 0px 0px 6px #8383F3);
     }
     .track {
-      border-bottom: 3px solid #0a0a0f;
       border-left: 0rem solid rgb(131, 131, 243);
     }
     .track:hover {
@@ -101,6 +98,9 @@
     .tag {
       background-color: #f0f0f0;
       color: #0a0a0f;
+    }
+    .track {
+      background-color: #112;
     }
   }
 
@@ -114,7 +114,6 @@
       filter: drop-shadow( 0px 0px 6px #f484b6);
     }
     .track {
-      border-bottom: 3px solid #f0f0f0;
       border-left: 0rem solid #ea74ac;
     }
     .track:hover {
@@ -124,6 +123,9 @@
     .tag {
       background-color: #0a0a0f;
       color: #fff;
+    }
+    .track {
+      background-color: #ffffff;
     }
   }
 </style>
