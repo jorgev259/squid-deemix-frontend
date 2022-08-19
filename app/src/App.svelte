@@ -17,8 +17,8 @@
   let next;
   let query;
 
-  async function search(event) {
-    query = event.target.value;
+  async function search(q) {
+    query = q;
 
     searchAlbums = [];
     loading = true;
