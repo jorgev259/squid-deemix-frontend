@@ -32,7 +32,8 @@ router.get('/api/album', async (req, res) => {
         title: t.title,
         duration: t.duration,
         link: t.link,
-        artist: t.artist.name
+        artist: t.artist.name,
+        explicit: t.explicit_content_lyrics
       };
     })
   });

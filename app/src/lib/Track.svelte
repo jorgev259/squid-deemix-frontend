@@ -6,6 +6,7 @@
   export let duration;
   export let album;
   export let albumArtist;
+  export let explicit;
 
   import { formatTime } from './format';
 
@@ -24,6 +25,9 @@
     {/if}
   </span>
   <span class="track-right">
+    {#if explicit}
+      <div class="tag">EXPLICIT</div>
+    {/if}
     <span class="small">{formatTime(duration)}</span>
     <span class="track-download" title="Download" on:click={() => startDownload(id, {title, artist: {name: artist}, cover, album}, false)}>
       <Icon icon={faDownload}/>
@@ -69,6 +73,14 @@
     transition: 0.1s filter ease-out, 0.1s color ease-out;
   }
 
+  .tag {
+    text-transform: uppercase;
+    border-radius: 10px;
+    padding: 0.2em;
+    font-size: small;
+    font-weight: bold;
+  }
+
   @media (prefers-color-scheme: dark) {
     .track-download {
       color: #fff;
@@ -85,6 +97,10 @@
     .track:hover {
       background-color: #161627;
       border-left: 0.25rem solid rgb(131, 131, 243);
+    }
+    .tag {
+      background-color: #f0f0f0;
+      color: #0a0a0f;
     }
   }
 
@@ -104,6 +120,10 @@
     .track:hover {
       background-color: #fafafa;
       border-left: 0.25rem solid #ea74ac;
+    }
+    .tag {
+      background-color: #0a0a0f;
+      color: #fff;
     }
   }
 </style>

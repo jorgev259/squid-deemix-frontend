@@ -70,7 +70,7 @@
       {/if}
     </div>
     <div class="album-image-wrapper">
-      <img class="album-image" width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/{cover}/128x128-000000-80-0-0.jpg" alt="Cover for '{title}'">
+      <img class="album-image" class:explicit={album && album.explicitCover === 1} width="128" height="128" src="https://e-cdns-images.dzcdn.net/images/cover/{cover}/128x128-000000-80-0-0.jpg" alt="Cover for '{title}'">
     </div>
   </div>
   <div class="album-inner-bottom">
@@ -90,7 +90,7 @@
   {/if}
   {#if album && !short}
     {#each album.tracks as track}
-      <Track id={track.id} title={track.title} duration={track.duration} artist={track.artist} cover={cover} album={title} albumArtist={artist.name}/>
+      <Track id={track.id} title={track.title} duration={track.duration} artist={track.artist} cover={cover} album={title} albumArtist={artist.name} explicit={track.explicit === 1}/>
     {/each}
   {/if}
 </div>
@@ -180,6 +180,14 @@
     display: flex;
     flex-direction: column-reverse;
     align-self: stretch;
+  }
+
+  .explicit {
+    transition: 0.2s filter ease-out;
+    filter: blur(8px);
+  }
+  .explicit:hover {
+    filter: blur(0px);
   }
 
   @media (prefers-color-scheme: dark) {
