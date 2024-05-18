@@ -60,7 +60,7 @@ export function startDownload(id, metadata, isAlbum) {
           toast.push(`Downloading <b>${metadata.artist.name} - ${metadata.title}</b> failed!`, {theme: failureTheme});
           logLocal.push('Server didn\'t send a download link back!');
           logLocal.push('This may be due to errors during the download or temporary connection issues');
-          logLocal.push('Try again, and if it still doesn\'t work, annoy oat until it does again');
+          logLocal.push('Try again, and if it still doesn\'t work, annoy Chito until it does again');
           log.set(logLocal);
         }
       }, 1000);

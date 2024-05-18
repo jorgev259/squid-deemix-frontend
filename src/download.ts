@@ -5,6 +5,7 @@ import { logger } from './logger';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 import { config } from './config';
+import path from 'path'
 
 export interface Metadata {
   id: number,
@@ -46,9 +47,12 @@ export async function deemixDownloadWrapper(dlObj: deemix.types.downloadObjects.
   } else if (trackpaths.length > 1) {
     await ws.send(JSON.stringify({key: 'zipping'}));
 
-    const folderName = trackpaths[0].split('/').slice(-2)[0];
+    const dataFolder = path.join(process.cwd(), 'data')
+    const folderName = path.relative(dataFolder, trackpaths[0]).split(path.sep)[0] 
+
     logger.debug(`zipping ${folderName}`);
     try {
+      logger.debug(`cd "data/" && "${config.server.zipBinaryLocation}" ${config.server.zipArguments} "${folderName}.zip" "${folderName}"`)
       await promisify(exec)(`cd "data/" && "${config.server.zipBinaryLocation}" ${config.server.zipArguments} "${folderName}.zip" "${folderName}"`);
     } catch(err) {
       logger.error((err as Error).toString());
