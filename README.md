@@ -1,73 +1,36 @@
-# deemix-web-frontend
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-a dumb frontend for just getting some got damned songs
+## Getting Started
 
-this is basically just a wrapper around [deemix](https://deemix.app/), specifically around [deemix-js](https://git.freezer.life/RemixDev/deemix-js). it's main purpose is to serve as an easier, more accessible GUI to the deemix library.
+First, run the development server:
 
-it's intended use is for small groups of people to self-host, and as such there's barely any restrictions to the service and no "official" instance of it. anyone can visit the website, anyone can download a song and a single ARL is shared between all users of a server. there's currently no authentication or similar, but there's plans for an account system.
-
-## screenshots
-
-![dark theme](docs/screenshot-1.png)
-![light theme](docs/screenshot-2.png)
-## usage
-
-1. create an `.env` file from the `.env.example` and enter your deezer ARL (i recommend signing up with an american VPN so less location blocks are enforced and metadata localization stays consistent)
-
-   your arl can be found in the local storage for deezer, as a value conviniently named `arl`
-
-2. (optionally) copy the config.example.json to config.json in the same folder, and modify it
-
-3. `npm install` / `pnpm install`
-   
-4. head to `app/`, run `npm install` / `pnpm install` there, followed by `npm run build` / `pnpm run build`
-
-5. install the `zip` linux tool into your path (there are currently no plans for windows support, however feel free to contribute)
-   
-6. build the project with `npm run build` / `pnpm build` or just run it with `npm run quickrun` / `pnpm run quickrun`
-
-7. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
-
-### nginx addenum
-
-route `data/` and `public/` through nginx (as serving data through nginx, software optimized for this, would be faster and more secure) and `api/` through localhost. be sure to add websocket-related header setters to your `/api` path:
-
-```nginx
-proxy_pass http://localhost:4500/api;
-proxy_http_version 1.1;
-proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection "upgrade";
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-your config should look similar to this:
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```nginx
-location /data {
-  root /home/oatmealine/deemix-web-frontend/;
-  index test;
-  try_files $uri $uri/ =404;
-}
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-location /api {
-  proxy_pass http://localhost:4500/api;
-  proxy_http_version 1.1;
-  proxy_set_header Upgrade $http_upgrade;
-  proxy_set_header Connection "upgrade";
-  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # optional but useful for logging
-}
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-location / {
-  root /home/oatmealine/deemix-web-frontend/app/dist/;
-  index index.html;
-  try_files $uri $uri/ =404;
-}
-```
+## Learn More
 
-## legal notice
+To learn more about Next.js, take a look at the following resources:
 
-none of the code in this repository reverses, surpasses or otherwise prevents the purpose of Deezer's DRM. all of the related code is done by an [external library](https://gitlab.com/RemixDev/deezer-js/) which has no affiliations with this project. this project simply serves as a GUI or front for said library. **PLEASE ONLY USE THIS PIECE OF SOFTWARE FOR EDUCATIONAL PURPOSES!!** none of the project's authors or contributors encourage piracy, and hold no warranties or responsibilities for use of the software provided.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## attributions & contributors
-- [Original project](https://git.oat.zone/oat/deemix-web-frontend)
-- [deemix](https://deemix.app/) & [deemix-js](https://git.freezer.life/RemixDev/deemix-js) developers and contributors
-- [aether](https://git.oat.zone/aether) for creating the light theme and helping design other parts of the website
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.

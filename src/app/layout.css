@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  transition: 0.1s background-color ease-out;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  /* .small {
+    font-size: medium;
+    font-weight: normal;
+  }
+  .big {
+    font-weight: bold;
+  }
+
+  .link {
+    cursor: pointer;
+    transition: 0.1s color ease-out;
+  }
+
+  button {
+    cursor: pointer;
+    border-width: 2px;
+    border-radius: 8px;
+    border-style: solid;
+    font-size: large;
+    padding: 0.25em;
+    transition: 0.1s border-color ease-out;
+  } */
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    background-color: #f0f0f0;
+    color: #1e1e2d;
+    accent-color: #ea74ac;
+  }
+  /* .small {
+      color: #c8c8d2;
+    }
+    .link {
+      color: #ea74ac;
+    }
+    .link:hover {
+      color: #f484b6;
+      filter: drop-shadow(0px 0px 2px #f484b6);
+    }
+    button {
+      background-color: #ffffff;
+      color: #1e1e2d;
+      border-color: #ffffff;
+    }
+    button:hover {
+      border-color: #ea74ac;
+    }*/
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0a0a0f;
+    color: #fff;
+    accent-color: rgb(131, 131, 243);
+  }
+  /* .small {
+    color: #888;
+  }
+  .link {
+    color: rgb(131, 131, 243);
+  }
+  .link:hover {
+    color: rgb(151, 151, 255);
+    filter: drop-shadow(0px 0px 2px #8383f3);
+  }
+  button {
+    background-color: #161627;
+    color: #fff;
+    border-color: #161627;
+  }
+  button:hover {
+    border-color: rgb(131, 131, 243);
+  } */
+}
