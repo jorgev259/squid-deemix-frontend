@@ -1,0 +1,39 @@
+.link {
+  display: flex;
+  font-size: x-large;
+  text-decoration: none;
+
+  cursor: pointer;
+  transition: 0.1s color ease-out;
+}
+
+.link img {
+  position: relative;
+  height: 26px;
+  width: auto;
+  top: 5px;
+}
+
+@media (prefers-color-scheme: light) {
+  .git {
+    filter: invert(100%);
+  }
+
+  .link {
+    color: #ea74ac;
+  }
+  .link:hover {
+    color: #f484b6;
+    filter: drop-shadow(0px 0px 2px #f484b6);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .link {
+    color: rgb(131, 131, 243);
+  }
+  .link:hover {
+    color: rgb(151, 151, 255);
+    filter: drop-shadow(0px 0px 2px #8383f3);
+  }
+}

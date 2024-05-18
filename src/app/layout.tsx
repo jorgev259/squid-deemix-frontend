@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
-import './layout.css'
+import '@/styles/layout.css'
+import Header from './header'
 
 export const metadata: Metadata = {
   title: 'SQUID.WTF - Deezer Downloader',
@@ -14,7 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body>{children}</body>
+      <body>
+        <main>
+          <Header />
+          {children}
+        </main>
+      </body>
     </html>
   )
 }
