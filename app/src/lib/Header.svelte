@@ -1,7 +1,44 @@
 <div class="header">
   <div class="header-left">
-    <a href="https://deemix.app" target="_blank" class="big link"><img class="deemix" width="26" height="auto" src="https://deemix.app/img/logo.png" alt=""> deemix</a>
-    <a href="https://git.oat.zone/oat/deemix-web-frontend" target="_blank" class="big link"><img class="git" width="26" height="auto" src="https://git-scm.com/images/logos/downloads/Git-Icon-White.png" alt=""> git</a>
+    <a href="/" class="big link svelte-1giqba1">SQUID.WTF</a>
+    <a
+      href="https://discord.gg/ATjPbzR"
+      target="_blank"
+      class="big link svelte-1giqba1"
+      ><img
+        class="deemix svelte-1giqba1"
+        width="26"
+        height="auto"
+        src="/assets/discord.png"
+        alt="Discord"
+        title="Discord"
+      /></a
+    >
+    <a
+      href="https://my.lyratris.com/donate/31de472c-6a1b-47bc-9939-54dbfac30990"
+      target="_blank"
+      class="big link svelte-1giqba1"
+      ><img
+        class="deemix svelte-1giqba1"
+        width="26"
+        height="auto"
+        src="/assets/donate.png"
+        alt="Donate"
+        title="Donate"
+      /></a
+    >
+    <a
+      href="https://git.oat.zone/oat/deemix-web-frontend"
+      target="_blank"
+      class="big link"
+      ><img
+        class="git"
+        width="26"
+        height="auto"
+        src="https://git-scm.com/images/logos/downloads/Git-Icon-White.png"
+        alt=""
+      />GIT</a
+    >
   </div>
 
   <div class="header-right">
