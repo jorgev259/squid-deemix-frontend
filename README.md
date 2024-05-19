@@ -10,23 +10,22 @@ it's intended use is for small groups of people to self-host, and as such there'
 
 ![dark theme](docs/screenshot-1.png)
 ![light theme](docs/screenshot-2.png)
+
 ## usage
 
 1. create an `.env` file from the `.env.example` and enter your deezer ARL (i recommend signing up with an american VPN so less location blocks are enforced and metadata localization stays consistent)
 
    your arl can be found in the local storage for deezer, as a value conviniently named `arl`
 
-2. (optionally) copy the config.example.json to config.json in the same folder, and modify it
+2. copy the config.example.json to config.json in the same folder, and modify it
 
-3. `npm install` / `pnpm install`
-   
-4. head to `app/`, run `npm install` / `pnpm install` there, followed by `npm run build` / `pnpm run build`
+3. `npm install`
 
-5. install the `zip` linux tool into your path (there are currently no plans for windows support, however feel free to contribute)
-   
-6. build the project with `npm run build` / `pnpm build` or just run it with `npm run quickrun` / `pnpm run quickrun`
+4. `npm build`
 
-7. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
+5. `npm start` or `npm run dev` (for development)
+
+6. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
 
 ### nginx addenum
 
@@ -68,6 +67,7 @@ location / {
 none of the code in this repository reverses, surpasses or otherwise prevents the purpose of Deezer's DRM. all of the related code is done by an [external library](https://gitlab.com/RemixDev/deezer-js/) which has no affiliations with this project. this project simply serves as a GUI or front for said library. **PLEASE ONLY USE THIS PIECE OF SOFTWARE FOR EDUCATIONAL PURPOSES!!** none of the project's authors or contributors encourage piracy, and hold no warranties or responsibilities for use of the software provided.
 
 ## attributions & contributors
+
 - [Original project](https://git.oat.zone/oat/deemix-web-frontend)
 - [deemix](https://deemix.app/) & [deemix-js](https://git.freezer.life/RemixDev/deemix-js) developers and contributors
 - [aether](https://git.oat.zone/aether) for creating the light theme and helping design other parts of the website
