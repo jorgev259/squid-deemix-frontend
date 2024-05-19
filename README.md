@@ -21,7 +21,7 @@ it's intended use is for small groups of people to self-host, and as such there'
 
 3. `npm install`
 
-4. `npm build`
+4. `npm run build`
 
 5. `npm start` or `npm run dev` (for development)
 
