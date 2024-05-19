@@ -25,8 +25,6 @@ it's intended use is for small groups of people to self-host, and as such there'
 
 5. `npm start` or `npm run dev` (for development)
 
-6. (optionally) put the service on pm2 like such: `pm2 start src/index.js --name deemix-web-frontend` (or just run it with `node src/index.js`)
-
 ### nginx addenum
 
 route `data/` and `public/` through nginx (as serving data through nginx, software optimized for this, would be faster and more secure) and `api/` through localhost. be sure to add websocket-related header setters to your `/api` path:
