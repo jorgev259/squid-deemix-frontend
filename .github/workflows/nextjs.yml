@@ -14,8 +14,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
-  pages: write
+  contents: write
   id-token: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
@@ -31,6 +30,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: fregante/setup-git-user@v2
 
       - name: Detect package manager
         id: detect-package-manager
@@ -58,9 +60,10 @@ jobs:
 
       - name: Prepare repository
         run: |
-          git fetch --all
           git checkout -b prod origin/prod
           git merge main
+          rm .gitignore
+          cp .gitignore_prod .gitignore
 
       - name: Restore cache
         uses: actions/cache@v4
