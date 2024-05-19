@@ -2,6 +2,8 @@ import fs from 'fs'
 import toml from 'toml'
 import path from 'path'
 
+import type { DeemixSettings } from '@/types/deemix'
+
 if (!fs.existsSync(path.join(process.cwd(), './config.toml'))) {
   if (!fs.existsSync(path.join(process.cwd(), './config.example.toml'))) {
     throw new Error(
@@ -14,7 +16,7 @@ if (!fs.existsSync(path.join(process.cwd(), './config.toml'))) {
   fs.copyFileSync('./config.example.toml', './config.toml')
 }
 
-export const config = toml.parse(
+export const config: DeemixSettings = toml.parse(
   fs.readFileSync(path.join(process.cwd(), './config.toml'), {
     encoding: 'utf8'
   })

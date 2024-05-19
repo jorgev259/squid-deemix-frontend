@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
 
-import { deezerInstance } from '@/lib/deemix'
-import { config } from '@/lib/config'
+import { searchAlbums } from 'deezer-api-ts'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -10,26 +9,21 @@ export async function GET(request: NextRequest) {
 
   if (!query) return new Response('', { status: 400 })
 
-  let s: DeezerResponse<[Album]>
-  try {
-    s = await deezerInstance.api.search_album(query, {
-      limit: config.limits.searchLimit || 15,
-      index: parseInt(index as string) || undefined
-    })
-  } catch (err) {
-    throw err
-  }
+  const result = await searchAlbums(query, {
+    // limit: config.limits.searchLimit || 15,
+    index: parseInt(index as string) || undefined
+  })
 
-  let payload = {
-    next: s.next && s.next.split('=').pop(), // dumb workaround of having to use regexes because i hate regexes
-    total: s.total,
-    data: s.data.map((s) => ({
-      id: s.id,
-      title: s.title,
-      cover: s.md5_image,
+  const payload = {
+    next: result.next && result.next.split('=').pop(), // dumb workaround of having to use regexes because i hate regexes
+    total: result.total,
+    data: result.data.map((album) => ({
+      id: album.id,
+      title: album.title,
+      cover: album.md5_image,
       artist: {
-        id: s.artist.id,
-        name: s.artist.name
+        id: album.artist.id,
+        name: album.artist.name
       }
     }))
   }
