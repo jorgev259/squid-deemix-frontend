@@ -3,39 +3,24 @@
 deleteTimer = 1500000 # 25 minutes
 
 [server]
-port = 4500
-# location of the zip utility binary
-zipBinaryLocation = "zip"
-zipArguments = "-0rD"
-# whether the server is running through a reverse proxy or not (nginx, etc)
-# thisll make it use x-forwarded-for and express's 'trust proxy'
-proxy = false
+port = 4500 
+zipArguments = "-0rD" 
+zipBinaryLocation = "zip" # location of the zip utility binary
 
 [limits]
-# the max amount of search results to send to the client
-searchLimit = 15
+searchLimit = 15 # the max amount of search results to send to the client
 
 [deemix]
-# the format of the song to download
-# can be "FLAC", "MP3_320", "MP3_128" or "DEFAULT"
-# NOTE: if you set it to a format your account doesnt support, things will just.. silently break
-# sorry
-trackFormat = "MP3_128"
-# templates for the folder and file names
+albumNameTemplate = "%artist% - %album%" 
+albumTrackNameTemplate = "%tracknumber%. %artist% - %title%" 
+createM3U8File = false # create a m3u8 playlist file or not
+downloadLocation = 'data/' 
+embeddedArtworkPNG = true 
+embeddedArtworkSize = 800 
+jpegImageQuality = 80 
+localArtworkFormat = "jpg" 
+localArtworkSize = 1200 
+removeDuplicateArtists = true 
+saveArtwork = true # put the cover art file inside of the folder
+trackFormat = "MP3_128" # ["FLAC", "MP3_320", "MP3_128" or "DEFAULT"]
 trackNameTemplate = "%artist% - %title%"
-albumTrackNameTemplate = "%tracknumber%. %artist% - %title%"
-albumNameTemplate = "%artist% - %album%"
-# create a m3u8 playlist file or not
-createM3U8File = false
-# cover art settings
-# embed cover art in the music files themselves
-embeddedArtworkPNG = true
-embeddedArtworkSize = 800
-# put the cover art file inside of the folder
-saveArtwork = true
-localArtworkSize = 1200
-localArtworkFormat = "jpg"
-
-jpegImageQuality = 80
-
-removeDuplicateArtists = true
