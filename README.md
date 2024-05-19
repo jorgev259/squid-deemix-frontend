@@ -17,7 +17,7 @@ it's intended use is for small groups of people to self-host, and as such there'
 
    your arl can be found in the local storage for deezer, as a value conviniently named `arl`
 
-2. copy the config.example.json to config.json in the same folder, and modify it
+2. copy the config.example.toml to config.toml in the same folder, and modify it
 
 3. `npm install`
 
