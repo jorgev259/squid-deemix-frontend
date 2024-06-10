@@ -75,6 +75,9 @@
   border-radius: 0px 0px 10px 10px;
   transition: 0.1s border-left ease-out;
   margin-bottom: 1em;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  max-height: 450px;
 }
 
 .metadata {

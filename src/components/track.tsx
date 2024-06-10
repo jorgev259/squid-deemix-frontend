@@ -1,27 +1,52 @@
-import type {
-  AlbumArtist,
-  AlbumTrack
-} from 'deezer-api-ts/dist/responses/album.response'
+import Skeleton from 'react-loading-skeleton'
+import { Suspense } from 'react'
 
 import styles from '@/styles/track.module.css'
 
 import { formatTime } from '@/lib/time'
-import { getAlbumTracks } from '@/lib/deezer'
 
 // import DownloadIcon from '@/img/DownloadIcon'
-import Skeleton from 'react-loading-skeleton'
+
+import type {
+  AlbumArtist,
+  AlbumTrack
+} from 'deezer-api-ts/dist/responses/album.response'
+import { AlbumTracksResponse } from 'deezer-api-ts/dist/responses/album-tracks.response'
+import { Response } from 'deezer-api-ts/dist/responses/base.response'
+import Repeat from './repeat'
 
 export default async function TrackList(props: {
-  albumId: number
+  url?: string
   albumArtist: AlbumArtist
+  total: number
 }) {
-  const { albumId, albumArtist } = props
+  const { url: urlString, albumArtist, total } = props
+  if (!urlString) return null
 
-  const trackList = await getAlbumTracks(albumId)
+  const url = new URL(urlString)
+  const index = parseInt(url.searchParams.get('index') ?? '0')
+  const remaining = Math.max(total - index, 0)
 
-  return trackList.map((t) => (
-    <Track key={t.id} track={t} albumArtist={albumArtist} />
-  ))
+  const { data, next }: Response<AlbumTracksResponse> = await (
+    await fetch(url)
+  ).json()
+
+  return (
+    <>
+      {data.map((t) => (
+        <Track key={t.id} track={t} albumArtist={albumArtist} />
+      ))}
+      <Suspense
+        fallback={
+          <Repeat count={remaining}>
+            <Track loading />
+          </Repeat>
+        }
+      >
+        <TrackList url={next} albumArtist={albumArtist} total={total} />
+      </Suspense>
+    </>
+  )
 }
 
 export function Track(props: {
