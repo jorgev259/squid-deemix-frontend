@@ -2,10 +2,9 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import Album from './album'
+import Repeat from './repeat'
 
 import { searchAlbums } from '@/lib/deezer'
-
-const AlbumArray = Array(5).fill(<Album loading />)
 
 export default async function AlbumSearch(props: { search?: string }) {
   const { search } = props
@@ -15,7 +14,13 @@ export default async function AlbumSearch(props: { search?: string }) {
       <ErrorBoundary
         fallback={<div className='mt-3 ms-2'>Something went wrong</div>}
       >
-        <Suspense fallback={AlbumArray}>
+        <Suspense
+          fallback={
+            <Repeat count={5}>
+              <Album loading />
+            </Repeat>
+          }
+        >
           <Page search={search} />
         </Suspense>
       </ErrorBoundary>

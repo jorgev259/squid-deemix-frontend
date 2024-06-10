@@ -1,17 +1,16 @@
 import clsx from 'clsx'
 import Image from 'next/image'
 import Skeleton from 'react-loading-skeleton'
+import { Suspense } from 'react'
 
 import styles from '@/styles/album.module.css'
 
 // import DownloadIcon from '@/img/DownloadIcon'
 
 import TrackList, { Track } from './track'
+import Repeat from './repeat'
 
 import type { SearchAlbumResponse } from 'deezer-api-ts/dist/responses/search-album.response'
-import { Suspense } from 'react'
-
-const blankTrackList = (count: number) => Array(count).fill(<Track loading />)
 
 export default async function Album(props: {
   loading?: boolean
@@ -78,11 +77,25 @@ export default async function Album(props: {
           id={`album-bottom-${`-${album?.id}` ?? ''}`}
         >
           {album ? (
-            <Suspense fallback={blankTrackList(album.nb_tracks)}>
-              <TrackList albumId={album.id} albumArtist={album.artist} />
+            <Suspense
+              fallback={
+                <Repeat count={Math.min(album.nb_tracks, 25)}>
+                  <Track loading />
+                </Repeat>
+              }
+            >
+              <TrackList
+                url={album.tracklist}
+                albumArtist={album.artist}
+                total={album.nb_tracks}
+              />
             </Suspense>
           ) : null}
-          {loading ? blankTrackList(3) : null}
+          {loading ? (
+            <Repeat count={2}>
+              <Track loading />
+            </Repeat>
+          ) : null}
         </div>
       </div>
     </div>
