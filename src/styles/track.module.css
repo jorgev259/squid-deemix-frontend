@@ -1,0 +1,86 @@
+.track {
+  padding: 10px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin: none;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  font-size: large;
+  transition:
+    0.05s background-color ease-out,
+    0.1s border-left ease-out;
+  margin-bottom: 3px;
+  border-left: 0rem solid rgb(131, 131, 243);
+  background-color: #112;
+}
+.track:hover {
+  background-color: #161627;
+  border-left: 0.25rem solid rgb(131, 131, 243);
+}
+.track:nth-last-child(1) {
+  border-radius: 0px 0px 15px 15px;
+}
+
+.track-left {
+  flex: 1 1 0px;
+  overflow: hidden;
+}
+.track-right {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.track-download {
+  vertical-align: top;
+  cursor: pointer;
+  transition:
+    0.1s filter ease-out,
+    0.1s color ease-out;
+  color: #fff;
+  filter: none;
+}
+
+.track-download:hover {
+  color: rgb(131, 131, 243);
+  filter: drop-shadow(0px 0px 6px #8383f3);
+}
+
+.tag {
+  text-transform: uppercase;
+  border-radius: 10px;
+  padding: 0.2em;
+  font-size: small;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  color: #0a0a0f;
+}
+
+@media (prefers-color-scheme: light) {
+  .track-download {
+    color: #1e1e2d;
+    filter: none;
+  }
+  .track-download:hover {
+    color: #ea74ac;
+    filter: drop-shadow(0px 0px 6px #f484b6);
+  }
+  .track {
+    border-left: 0rem solid #ea74ac;
+  }
+  .track:hover {
+    background-color: #fafafa;
+    border-left: 0.25rem solid #ea74ac;
+  }
+  .tag {
+    background-color: #0a0a0f;
+    color: #fff;
+  }
+  .track {
+    background-color: #ffffff;
+  }
+}

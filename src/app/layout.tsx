@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
+import { SkeletonTheme } from 'react-loading-skeleton'
 
+import 'react-loading-skeleton/dist/skeleton.css'
 import '@/styles/layout.css'
-import Header from './header'
 
 export const metadata: Metadata = {
   title: 'SQUID.WTF - Deezer Downloader',
@@ -10,16 +11,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang='en'>
       <body>
-        <main>
-          <Header />
+        <SkeletonTheme
+          baseColor='var(--accent-color)'
+          highlightColor='var(--color)'
+        >
           {children}
-        </main>
+        </SkeletonTheme>
       </body>
     </html>
   )
