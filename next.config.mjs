@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'git-scm.com'
+        hostname: 'e-cdns-images.dzcdn.net'
       }
     ]
   }

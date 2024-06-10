@@ -12,18 +12,22 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "deezer-api-ts": "^1.2.3",
+    "deezer-api-ts": "github:jorgev259/deezer-api-ts#main",
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
+    "react-error-boundary": "^4.0.13",
+    "react-loading-skeleton": "^3.4.0",
     "sharp": "^0.33.4",
-    "toml": "^3.0.0"
+    "toml": "^3.0.0",
+    "tough-cookie": "^4.1.4"
   },
   "devDependencies": {
     "@types/cookiejar": "^2.1.5",
     "@types/node": "^20.12.12",
     "@types/react": "^18.3.2",
     "@types/react-dom": "^18.3.0",
+    "@types/tough-cookie": "^4.0.5",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",
     "eslint": "^8.57.0",

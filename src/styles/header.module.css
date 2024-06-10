@@ -1,10 +1,16 @@
 .link {
+  color: var(--accent-color);
   display: flex;
   font-size: x-large;
   text-decoration: none;
 
   cursor: pointer;
   transition: 0.1s color ease-out;
+}
+
+.link:hover {
+  color: rgb(151, 151, 255);
+  filter: drop-shadow(0px 0px 2px #8383f3);
 }
 
 .link img {
@@ -20,20 +26,10 @@
   }
 
   .link {
-    color: #ea74ac;
+    color: var(--accent-color);
   }
   .link:hover {
     color: #f484b6;
     filter: drop-shadow(0px 0px 2px #f484b6);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .link {
-    color: rgb(131, 131, 243);
-  }
-  .link:hover {
-    color: rgb(151, 151, 255);
-    filter: drop-shadow(0px 0px 2px #8383f3);
   }
 }
