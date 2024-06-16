@@ -21,5 +21,3 @@ export const config: DeemixSettings = toml.parse(
     encoding: 'utf8'
   })
 )
-
-console.info('loaded config')

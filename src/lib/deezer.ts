@@ -1,20 +1,11 @@
-import { searchAlbums as searchAlbumsApi } from 'deezer-api-ts'
-import { cache } from 'react'
+import deezer from 'deezer-js';
+// import deemix from 'deemix';
 
-// import { gotOptions } from '../constants/gotOptions'
-import rateLimiter from './rateLimiter'
+const deezerClient = new deezer.Deezer();
 
-export const searchAlbums = cache(async (query: string, index?: number) => {
-  await rateLimiter.handle()
+export async function getDeezerClient() {
+  if (!process.env.DEEZER_ARL) throw new Error('DEEZER_ARL environment variable not set')
+  if (!deezerClient.logged_in) await deezerClient.login_via_arl(process.env.DEEZER_ARL)
 
-  const result = await searchAlbumsApi(query, { index }/* , gotOptions */)
-
-  const payload: typeof result = {
-    ...result,
-    next: result.next && result.next.split('=').pop() // dumb workaround of having to use regexes because i hate regexes
-  }
-
-  if (!payload.data) throw new Error('Error: album search null')
-
-  return payload.data
-})
+  return deezerClient
+}
