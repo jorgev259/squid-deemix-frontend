@@ -1,15 +1,42 @@
 'use client'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { ChangeEvent, useRef, useState } from 'react'
 
 import styles from '@/styles/searchInput.module.css'
 
 import basedAlbums from '@/constants/basedAlbums.json'
-import SearchIcon from '@/img/SearchIcon'
 
 export default function SearchInput() {
-  const pathname = usePathname()
+  const searchRef = useRef('')
+  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  function handleSearch(value: string) {
+    if (value.length === 0) return
+    router.push(`/?search=${value}`)
+  }
+
+  function inputChanged(ev: ChangeEvent<HTMLInputElement>) {
+    if (timer) {
+      clearTimeout(timer)
+      setTimer(null)
+    }
+
+    const { value } = ev.target
+    searchRef.current = value
+
+    if (!value || value.length === 0) return
+
+    const newTimer = setTimeout(handleSearch, 500, value)
+
+    setTimer(newTimer)
+  }
+
+  function keyUp() {
+    if (timer) clearTimeout(timer)
+    handleSearch(searchRef.current)
+  }
 
   const search = searchParams.get('search') || ''
 
@@ -22,13 +49,8 @@ export default function SearchInput() {
           basedAlbums[Math.floor(Math.random() * basedAlbums.length)]
         }
         defaultValue={search}
-        onChange={(ev) =>
-          router.replace(
-            ev.target.value.length > 0
-              ? `${pathname}?search=${ev.target.value}`
-              : pathname
-          )
-        }
+        onChange={inputChanged}
+        onKeyUp={keyUp}
       />
     </div>
   )
