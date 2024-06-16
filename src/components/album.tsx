@@ -10,11 +10,11 @@ import styles from '@/styles/album.module.css'
 import TrackList, { Track } from './track'
 import Repeat from './repeat'
 
-import type { SearchAlbumResponse } from 'deezer-api-ts/dist/responses/search-album.response'
+import type { AlbumResponse } from 'deezer-api-ts/dist/responses/album.response'
 
 export default async function Album(props: {
   loading?: boolean
-  album?: SearchAlbumResponse
+  album?: AlbumResponse
 }) {
   const { album, loading } = props
 
@@ -85,9 +85,10 @@ export default async function Album(props: {
               }
             >
               <TrackList
-                url={album.tracklist}
+                albumId={album.id}
                 albumArtist={album.artist}
-                total={album.nb_tracks}
+                index={0}
+                albumTotal={album.nb_tracks}
               />
             </Suspense>
           ) : null}

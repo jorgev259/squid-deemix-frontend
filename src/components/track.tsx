@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import styles from '@/styles/track.module.css'
 
 import { formatTime } from '@/lib/time'
+import { getDeezerClient } from '@/lib/deezer'
 
 // import DownloadIcon from '@/img/DownloadIcon'
 
@@ -11,25 +12,29 @@ import type {
   AlbumArtist,
   AlbumTrack
 } from 'deezer-api-ts/dist/responses/album.response'
-import { AlbumTracksResponse } from 'deezer-api-ts/dist/responses/album-tracks.response'
-import { Response } from 'deezer-api-ts/dist/responses/base.response'
+
 import Repeat from './repeat'
 
 export default async function TrackList(props: {
-  url?: string
+  albumId: number
   albumArtist: AlbumArtist
-  total: number
+  index: number
+  albumTotal: number
+  next?: string
 }) {
-  const { url: urlString, albumArtist, total } = props
-  if (!urlString) return null
+  const { albumArtist, albumId, index, next: currentNext, albumTotal } = props
+  if (!currentNext && index > 0) return null
 
-  const url = new URL(urlString)
-  const index = parseInt(url.searchParams.get('index') ?? '0')
-  const remaining = Math.max(total - index, 0)
+  const deezerClient = await getDeezerClient()
+  const remaining = Math.max(albumTotal - index, 0)
 
-  const { data, next }: Response<AlbumTracksResponse> = await (
-    await fetch(url)
-  ).json()
+  const {
+    data,
+    next: newNext,
+    total
+  } = await deezerClient.api.get_album_tracks(albumId, {
+    index
+  })
 
   return (
     <>
@@ -43,7 +48,13 @@ export default async function TrackList(props: {
           </Repeat>
         }
       >
-        <TrackList url={next} albumArtist={albumArtist} total={total} />
+        <TrackList
+          albumId={albumId}
+          albumArtist={albumArtist}
+          index={index + total}
+          albumTotal={albumTotal}
+          next={newNext}
+        />
       </Suspense>
     </>
   )
