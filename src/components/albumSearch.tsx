@@ -13,7 +13,12 @@ export default async function AlbumSearch(props: { search?: string }) {
   return search ? (
     <div className='w-full'>
       <ErrorBoundary
-        fallback={<div className='mt-3 ms-2'>Something went wrong</div>}
+        fallback={
+          <div className='mt-4 ms-2'>
+            Something went wrong. Refresh the page, try again in a few minutes
+            or bother @ChitoWarlock about it
+          </div>
+        }
       >
         <Suspense
           fallback={

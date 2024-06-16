@@ -13,7 +13,7 @@
     0.1s border-left ease-out;
   margin-bottom: 3px;
   border-left: 0rem solid rgb(131, 131, 243);
-  background-color: #112;
+  background-color: var(--dark-bg);
 }
 .track:hover {
   background-color: #161627;

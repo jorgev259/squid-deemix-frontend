@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import Image from 'next/image'
 import Skeleton from 'react-loading-skeleton'
 import { Suspense } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 
 import styles from '@/styles/album.module.css'
 
@@ -84,12 +85,21 @@ export default async function Album(props: {
                 </Repeat>
               }
             >
-              <TrackList
-                albumId={album.id}
-                albumArtist={album.artist}
-                index={0}
-                albumTotal={album.nb_tracks}
-              />
+              <ErrorBoundary
+                fallback={
+                  <div className='text-sm p-5 bg-[var(--dark-bg)]'>
+                    Failed to fetch tracklist. Try again later or bother
+                    @ChitoWarlock about it
+                  </div>
+                }
+              >
+                <TrackList
+                  albumId={album.id}
+                  albumArtist={album.artist}
+                  index={0}
+                  albumTotal={album.nb_tracks}
+                />
+              </ErrorBoundary>
             </Suspense>
           ) : null}
           {loading ? (
