@@ -1,5 +1,6 @@
 .album {
   padding: 15px;
+  padding-bottom: 0px;
   margin: 2px;
   font-size: large;
   border-radius: 10px 10px 0px 0px;
@@ -74,7 +75,7 @@
   margin-right: 2px;
   border-radius: 0px 0px 10px 10px;
   transition: 0.1s border-left ease-out;
-  margin-bottom: 1em;
+  margin-bottom: 12px;
   overflow-y: auto;
   scrollbar-width: thin;
   max-height: 450px;
